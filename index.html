@@ -67,7 +67,7 @@
     <main class="main-content" id="mainContainer">
       <div id="loader" class="flex flex-col items-center justify-center h-[60vh] text-emerald-600">
         <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4"></i>
-        <p class="font-bold text-xs uppercase tracking-widest text-slate-500">SINKRONISASI DATA...</p>
+        <p class="font-bold text-xs uppercase tracking-widest text-slate-500 mt-2">SINKRONISASI DATABASE...</p>
       </div>
       <div id="errorBox" class="hidden bg-red-100 border-l-4 border-red-600 text-red-800 p-4 rounded-md mb-4 shadow-sm text-sm font-bold"></div>
 
@@ -148,14 +148,24 @@
 
   <script>
     // =========================================================================
-    // ⚠️ GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT ANDA
+    // ⚠️ GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT ANDA (YANG AKTIF)
     // =========================================================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbyQMRzeKbux-KZtgHRoBQjnjQ6LkKawZjYiTi3I-gL8psFG9jbNQV5tQVH_1XOjsOVqlA/exec';
 
+    // State Default
     let STATE = { tab: 'monitoring', view: 'KEC', kec: '', desa: '', config: null, overall: null, headers: [] };
 
     document.addEventListener("DOMContentLoaded", syncData);
     
+    // ===================== MESIN PENYIMPANAN CACHE =====================
+    // Menjaga agar saat di-refresh, pengguna tidak kembali ke menu utama
+    function saveStateCache() {
+      localStorage.setItem('pkh_state_2026', JSON.stringify({
+        tab: STATE.tab, view: STATE.view, kec: STATE.kec, desa: STATE.desa
+      }));
+    }
+
+    // ===================== KONEKSI API & KOMPRESI =====================
     async function apiFetch(action, params = {}) {
       const url = new URL(API_URL);
       url.searchParams.append('action', action);
@@ -174,7 +184,6 @@
       return await res.json();
     }
 
-    // KOMPRESI SUPER RINGAN UNTUK HP LOW-END
     function compressImage(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -184,7 +193,7 @@
           img.src = event.target.result;
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 800; // Optimal untuk HP low-end, mencegah RAM penuh
+            const MAX_WIDTH = 800; // Optimal RAM
             const MAX_HEIGHT = 800;
             let width = img.width;
             let height = img.height;
@@ -200,7 +209,7 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
             
-            resolve(canvas.toDataURL('image/jpeg', 0.5)); // Kompresi 50%
+            resolve(canvas.toDataURL('image/jpeg', 0.5)); // Kompresi 50% anti gagal
           };
           img.onerror = () => reject(new Error("Gagal memuat gambar untuk kompresi"));
         };
@@ -208,6 +217,7 @@
       });
     }
 
+    // ===================== LOGIKA SISTEM & NAVIGASI =====================
     function syncData() {
       document.getElementById('loader').classList.remove('hidden');
       ['Monitoring', 'Input', 'Petunjuk'].forEach(t => document.getElementById('tab'+t).classList.add('hidden'));
@@ -223,7 +233,14 @@
         document.getElementById('badgeInputDesktop').style.display = hasEmpty ? 'block' : 'none';
         document.getElementById('badgeInputMobile').style.display = hasEmpty ? 'block' : 'none';
         
-        switchTab(STATE.tab, true);
+        // Cek apakah ada Cache halaman sebelumnya (Mencegah kembali ke Home saat refresh)
+        const savedCache = localStorage.getItem('pkh_state_2026');
+        if (savedCache) {
+          const s = JSON.parse(savedCache);
+          STATE.tab = s.tab; STATE.view = s.view; STATE.kec = s.kec; STATE.desa = s.desa;
+        }
+
+        switchTab(STATE.tab, true); // Render ulang dengan force=true
       }).catch(err => {
         document.getElementById('loader').classList.add('hidden');
         document.getElementById('errorBox').innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> Gagal Memuat API: ${err.message}`;
@@ -231,26 +248,39 @@
       });
     }
 
-    function switchTab(tabName, force = false) {
-      if (STATE.tab === tabName && !force && STATE.view === 'KEC') return;
-      STATE.tab = tabName; STATE.view = 'KEC';
+    function switchTab(tabName, isRestore = false) {
+      if (STATE.tab === tabName && !isRestore && STATE.view === 'KEC') return;
+      STATE.tab = tabName; 
+      
+      // Hanya reset View ke Home KEC jika tab ditekan secara manual, BUKAN saat refresh
+      if (!isRestore) STATE.view = 'KEC'; 
 
+      // Reset UI Tab
       ['monitoring', 'input', 'petunjuk'].forEach(t => {
         document.getElementById(`mnav-${t}`).classList.remove('active');
         document.getElementById(`dnav-${t}`).classList.remove('active');
         document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden');
       });
-      document.getElementById(`mnav-${tabName}`).classList.add('active');
-      document.getElementById(`dnav-${tabName}`).classList.add('active');
-      document.getElementById(`tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`).classList.remove('hidden');
+      document.getElementById(`mnav-${STATE.tab}`).classList.add('active');
+      document.getElementById(`dnav-${STATE.tab}`).classList.add('active');
+      document.getElementById(`tab${STATE.tab.charAt(0).toUpperCase() + STATE.tab.slice(1)}`).classList.remove('hidden');
 
       document.getElementById('btnBack').classList.add('hidden');
       document.getElementById('appTitle').innerText = 'SDM PKH TAPIN';
       document.getElementById('appSubtitle').innerText = 'Sistem Data Wilayah';
       document.getElementById('inputListTitle').innerHTML = '';
 
-      if (tabName === 'monitoring') renderMonitoringKec();
-      else if (tabName === 'input') renderInputKec();
+      // Tampilkan halaman persis sesuai History / Klik
+      if (STATE.tab === 'monitoring') {
+        if (isRestore && STATE.view === 'DESA') renderMonitoringDesa(STATE.kec);
+        else renderMonitoringKec();
+      } else if (STATE.tab === 'input') {
+        if (isRestore && STATE.view === 'ROWS') loadInputRows(STATE.kec, STATE.desa);
+        else if (isRestore && STATE.view === 'DESA') renderInputDesa(STATE.kec);
+        else renderInputKec();
+      }
+
+      saveStateCache(); // Kunci posisi
     }
 
     function goBack() {
@@ -267,10 +297,9 @@
         </div>`;
     }
 
-    // MONITORING
+    // ===================== MONITORING RENDERER =====================
     function renderMonitoringKec() {
       STATE.view = 'KEC'; document.getElementById('btnBack').classList.add('hidden');
-      
       document.getElementById('monitoringSummary').innerHTML = `
         <div class="bg-slate-900 text-white rounded-xl p-6 shadow-lg relative overflow-hidden mb-6">
           <div class="absolute right-0 top-0 w-40 h-40 bg-emerald-600 rounded-full blur-3xl opacity-20"></div>
@@ -281,10 +310,8 @@
             <div class="text-right"><p class="text-[10px] md:text-xs text-emerald-400 font-semibold mb-1">SELESAI</p><p class="font-black text-xl md:text-2xl">${STATE.overall.isi}</p></div>
           </div>
         </div>`;
-
       const listDiv = document.getElementById('monitoringList');
       listDiv.innerHTML = '<div class="col-span-full"><h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2">Sebaran 12 Kecamatan</h3></div>';
-      
       Object.keys(STATE.config).sort().forEach(kec => {
         listDiv.innerHTML += `
           <div onclick="renderMonitoringDesa('${kec}')" class="card p-5 flex justify-between items-center cursor-pointer hover:border-emerald-500">
@@ -292,6 +319,7 @@
             <i class="fa-solid fa-chevron-right text-slate-300"></i>
           </div>`;
       });
+      saveStateCache();
     }
 
     function renderMonitoringDesa(kec) {
@@ -300,24 +328,22 @@
       document.getElementById('appTitle').innerText = 'KEC. ' + kec;
       document.getElementById('appSubtitle').innerText = 'Daftar Kelurahan/Desa';
       document.getElementById('monitoringSummary').innerHTML = ''; 
-      
       const listDiv = document.getElementById('monitoringList');
       listDiv.innerHTML = `<div class="col-span-full"><h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2">Desa di Kecamatan ${kec}</h3></div>`;
-
       Object.keys(STATE.config[kec].desas).sort().forEach(desa => {
         listDiv.innerHTML += `
           <div class="card p-5 border-l-4 border-l-slate-800 cursor-default">
             <h3 class="font-bold text-slate-800 text-sm">${desa}</h3>${renderStats(STATE.config[kec].desas[desa])}
           </div>`;
       });
+      saveStateCache();
     }
 
-    // FORM INPUT
+    // ===================== FORM INPUT RENDERER =====================
     function renderInputKec() {
       STATE.view = 'KEC'; document.getElementById('btnBack').classList.add('hidden');
       document.getElementById('inputListTitle').innerHTML = '';
       const listDiv = document.getElementById('inputList'); listDiv.innerHTML = '';
-      
       Object.keys(STATE.config).sort().forEach(kec => {
         listDiv.innerHTML += `
           <div onclick="renderInputDesa('${kec}')" class="card p-4 md:p-5 flex justify-between items-center cursor-pointer hover:border-emerald-500 transition">
@@ -325,6 +351,7 @@
             <div class="bg-emerald-50 w-8 h-8 rounded-full flex items-center justify-center text-emerald-600"><i class="fa-solid fa-arrow-right"></i></div>
           </div>`;
       });
+      saveStateCache();
     }
 
     function renderInputDesa(kec) {
@@ -332,10 +359,8 @@
       document.getElementById('btnBack').classList.remove('hidden'); 
       document.getElementById('appTitle').innerText = 'KEC. ' + kec;
       document.getElementById('appSubtitle').innerText = 'Pilih Desa/Kelurahan';
-      
       document.getElementById('inputListTitle').innerHTML = `<h3 class="text-[11px] font-black text-emerald-700 uppercase tracking-widest pl-1 mb-1 mt-2">Pilih Wilayah ${kec}</h3>`;
       const listDiv = document.getElementById('inputList'); listDiv.innerHTML = '';
-      
       Object.keys(STATE.config[kec].desas).sort().forEach(desa => {
         let kosong = STATE.config[kec].desas[desa].kosong;
         listDiv.innerHTML += `
@@ -344,6 +369,7 @@
             <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-xs font-bold shadow-sm transition">BUKA</button>
           </div>`;
       });
+      saveStateCache();
     }
 
     function loadInputRows(kec, desa) {
@@ -357,7 +383,6 @@
       apiFetch('getRows', {kec, desa}).then(res => {
         if(res.status === 'error') throw new Error(res.message);
         listDiv.innerHTML = '';
-        
         res.data.forEach(item => {
           const isDone = item.status === 'SELESAI';
           listDiv.innerHTML += `
@@ -372,12 +397,13 @@
               <button onclick='openForm(${JSON.stringify(item)})' class="${isDone ? 'bg-slate-200 text-slate-500' : 'btn-primary'} px-4 py-2 rounded-lg text-xs md:text-sm font-bold uppercase tracking-widest">FORM</button>
             </div>`;
         });
+        saveStateCache();
       }).catch(err => {
         listDiv.innerHTML = `<div class="col-span-full text-center text-red-600 font-bold p-4 bg-red-50 rounded">Gagal mengambil data: ${err.message}</div>`;
       });
     }
 
-    // FORM MODAL & UPLOAD
+    // ===================== FORM MODAL & UPLOAD =====================
     function openForm(item) {
       document.getElementById('modalTitle').innerText = item.namaPengurus;
       document.getElementById('modalSubtitle').innerText = `BARIS ${item.rowIndex} • RT ${item.rt} • ${STATE.desa}`;
@@ -394,7 +420,7 @@
           if (isLocked) {
             fieldHtml = `<a href="${val}" target="_blank" class="w-full flex items-center justify-center gap-2 p-3 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 text-xs font-bold hover:bg-slate-200 transition"><i class="fa-solid fa-image text-emerald-600"></i> Cek Berkas Foto</a>`;
           } else {
-            // FIX: Menggunakan metode <label> standar HTML5 yang dijamin 100% responsif di HP kentang
+            // FIX HP KENTANG: Pakai <label> asli HTML5 yang paling responsif dan anti-error
             fieldHtml = `
               <label class="flex flex-col items-center justify-center w-full p-3 border border-emerald-400 border-dashed rounded-lg bg-emerald-50 text-emerald-700 cursor-pointer hover:bg-emerald-100 transition active:scale-95">
                 <div class="flex items-center gap-2">
@@ -464,7 +490,7 @@
         
         alert("✅ SUKSES: " + res.message);
         closeForm();
-        syncData(); 
+        syncData(); // Otomatis refresh real-time dan Cache akan menahan di layar yang sama!
 
       } catch (err) {
         alert("❌ GAGAL: " + err.message);
