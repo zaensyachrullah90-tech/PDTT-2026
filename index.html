@@ -26,13 +26,14 @@
     .desktop-nav-item:hover { color: #10b981; }
 
     input:read-only { background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; pointer-events: none; }
-    input:not(:read-only) { background-color: #ffffff; border: 1px solid #059669; color: #0f172a; }
-    input:focus { outline: none; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2); }
+    input:not(:read-only), select:not(:disabled) { background-color: #ffffff; border: 1px solid #059669; color: #0f172a; }
+    input:focus, select:focus { outline: none; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2); }
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     
     @keyframes pulse-fast { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     .animate-autosave { animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    .photo-wrap { transition: opacity 0.3s ease; }
   </style>
 </head>
 <body class="bg-slate-50">
@@ -84,7 +85,7 @@
           <i class="fa-solid fa-shield-halved text-blue-600 text-xl mt-1"></i>
           <div>
             <h3 class="font-bold text-blue-900 text-sm">Mode Hibrida (Master & Editable)</h3>
-            <p class="text-xs text-blue-700 mt-1 leading-relaxed">Kolom <b>A-N dikunci mati</b> (Master Data). Kolom <b>O-Akhir bebas diedit</b> (termasuk foto). Didukung Auto-Save 5 Detik.</p>
+            <p class="text-xs text-blue-700 mt-1 leading-relaxed">Dilengkapi <b>Auto-Save</b> & Dropdown Kesesuaian. Kolom A-N Terkunci, O-Akhir Terbuka.</p>
           </div>
         </div>
         <div id="inputListTitle" class="w-full"></div>
@@ -97,9 +98,11 @@
           <ul class="space-y-4 text-sm text-slate-600 font-semibold mb-8">
             <li class="flex gap-3 items-start"><i class="fa-solid fa-1 text-emerald-600 mt-1"></i> Buka tab <strong>Form Input</strong>.</li>
             <li class="flex gap-3 items-start"><i class="fa-solid fa-2 text-emerald-600 mt-1"></i> Pilih Kecamatan dan Desa tujuan.</li>
-            <li class="flex gap-3 items-start"><i class="fa-solid fa-3 text-emerald-600 mt-1"></i> Kolom berlabel <b>MASTER</b> tidak dapat diubah jika sudah terisi.</li>
-            <li class="flex gap-3 items-start"><i class="fa-solid fa-4 text-emerald-600 mt-1"></i> Kolom berlabel <b>EDITABLE</b> (Kolom O+) bisa direvisi dan difoto ulang bebas.</li>
-            <li class="flex gap-3 items-start"><i class="fa-solid fa-5 text-emerald-600 mt-1"></i> Centang <b>"Tidak perlu foto"</b> jika dokumen fisik tidak ada.</li>
+            <li class="flex gap-3 items-start"><i class="fa-solid fa-circle-exclamation text-red-500 mt-1"></i> <b>PENTING:</b> Jika data tidak ada isinya, harap isi dengan tanda strip (<b>-</b>).</li>
+            <li class="flex gap-3 items-start"><i class="fa-solid fa-hashtag text-blue-500 mt-1"></i> <b>PENTING:</b> Untuk kolom <b>Jumlah</b>, harap HANYA diisi dengan <b>Angka</b>.</li>
+            <li class="flex gap-3 items-start"><i class="fa-solid fa-lock text-slate-500 mt-1"></i> Kolom berlabel <b>MASTER</b> (Kolom A-N) tidak dapat diubah jika sudah terisi.</li>
+            <li class="flex gap-3 items-start"><i class="fa-solid fa-pen text-emerald-600 mt-1"></i> Kolom berlabel <b>EDITABLE</b> (Kolom O+) bisa direvisi dan difoto ulang bebas.</li>
+            <li class="flex gap-3 items-start"><i class="fa-solid fa-check-double text-emerald-600 mt-1"></i> Centang <b>"Tidak perlu foto"</b> jika dokumen fisik tidak ada agar status menjadi OK.</li>
           </ul>
           <div class="p-5 bg-blue-50 border border-blue-200 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="text-center md:text-left">
@@ -177,7 +180,6 @@
       for(let i=0; i<STATE.headers.length; i++) {
         let skipCb = document.getElementById(`skipPhoto_${i}`);
         let el = document.getElementById(`inputCol_${i}`);
-        
         if (skipCb) formData[`skip_${i}`] = skipCb.checked;
         if (el && el.type !== 'file') formData[i] = el.value;
       }
@@ -193,7 +195,7 @@
        if(isSkipped) {
           container.style.opacity = '0.3';
           container.style.pointerEvents = 'none';
-          document.getElementById(`inputCol_${index}`).value = ''; 
+          document.getElementById(`inputCol_${index}`).value = '-'; 
           document.getElementById(`lbl_file_${index}`).innerText = '';
        } else {
           container.style.opacity = '1';
@@ -202,7 +204,6 @@
        markFormChanged(); 
     }
 
-    // ===================== KONEKSI API & KOMPRESI 80x130 =====================
     async function apiFetch(action, params = {}) {
       const url = new URL(API_URL);
       url.searchParams.append('action', action);
@@ -235,11 +236,9 @@
             canvas.width = TARGET_WIDTH;
             canvas.height = TARGET_HEIGHT;
             const ctx = canvas.getContext('2d');
-            
             const imgRatio = img.width / img.height;
             const targetRatio = TARGET_WIDTH / TARGET_HEIGHT;
             let drawWidth, drawHeight, offsetX = 0, offsetY = 0;
-
             if (imgRatio > targetRatio) {
               drawHeight = TARGET_HEIGHT;
               drawWidth = img.width * (TARGET_HEIGHT / img.height);
@@ -249,7 +248,6 @@
               drawHeight = img.height * (TARGET_WIDTH / img.width);
               offsetY = (TARGET_HEIGHT - drawHeight) / 2;
             }
-            
             ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
             resolve(canvas.toDataURL('image/jpeg', 0.9)); 
           };
@@ -259,33 +257,26 @@
       });
     }
 
-    // ===================== AUTO-SAVE BACKGROUND SYNC REALTIME =====================
     async function performBackgroundSync() {
       const modal = document.getElementById('formModal');
       if (!modal.classList.contains('hidden') && pendingChanges && activeRowIndex) {
         const statusUI = document.getElementById('autoSaveStatus');
         statusUI.classList.remove('hidden'); 
-        
         try {
           const updates = new Array(STATE.headers.length).fill("");
-          
           for(let i=0; i<STATE.headers.length; i++) {
             const skipCb = document.getElementById(`skipPhoto_${i}`);
             const input = document.getElementById(`inputCol_${i}`);
-            
             if (skipCb && skipCb.checked) {
               updates[i] = "-"; 
             } else if (input) {
               if (input.type === 'file') {
-                if (input.files.length === 0) {
-                  updates[i] = input.getAttribute('data-old') || "";
-                }
+                updates[i] = input.getAttribute('data-old') || "";
               } else {
                 updates[i] = input.value;
               }
             }
           }
-
           await apiPost('submitData', { rowIndex: activeRowIndex, updates });
           pendingChanges = false; 
         } catch (e) {
@@ -296,22 +287,17 @@
       }
     }
 
-    // ===================== LOGIKA SISTEM & NAVIGASI =====================
     function syncData() {
       document.getElementById('loader').classList.remove('hidden');
       ['Monitoring', 'Input', 'Petunjuk'].forEach(t => document.getElementById('tab'+t).classList.add('hidden'));
       document.getElementById('errorBox').classList.add('hidden');
-      
       apiFetch('getConfig').then(res => {
         document.getElementById('loader').classList.add('hidden');
         if(res.status === 'error') throw new Error(res.message);
-        
         STATE.config = res.stats; STATE.overall = res.overall; STATE.headers = res.headers;
-        
         const hasEmpty = res.overall.kosong > 0;
         document.getElementById('badgeInputDesktop').style.display = hasEmpty ? 'block' : 'none';
         document.getElementById('badgeInputMobile').style.display = hasEmpty ? 'block' : 'none';
-        
         const savedCache = localStorage.getItem('pkh_state_2026');
         if (savedCache) {
           const s = JSON.parse(savedCache);
@@ -329,7 +315,6 @@
       if (STATE.tab === tabName && !isRestore && STATE.view === 'KEC') return;
       STATE.tab = tabName; 
       if (!isRestore) STATE.view = 'KEC'; 
-
       ['monitoring', 'input', 'petunjuk'].forEach(t => {
         document.getElementById(`mnav-${t}`).classList.remove('active');
         document.getElementById(`dnav-${t}`).classList.remove('active');
@@ -338,12 +323,10 @@
       document.getElementById(`mnav-${STATE.tab}`).classList.add('active');
       document.getElementById(`dnav-${STATE.tab}`).classList.add('active');
       document.getElementById(`tab${STATE.tab.charAt(0).toUpperCase() + STATE.tab.slice(1)}`).classList.remove('hidden');
-
       document.getElementById('btnBack').classList.add('hidden');
       document.getElementById('appTitle').innerText = 'SDM PKH TAPIN';
       document.getElementById('appSubtitle').innerText = 'Sistem Data Wilayah';
       document.getElementById('inputListTitle').innerHTML = '';
-
       if (STATE.tab === 'monitoring') {
         if (isRestore && STATE.view === 'DESA') renderMonitoringDesa(STATE.kec);
         else renderMonitoringKec();
@@ -384,28 +367,20 @@
       const listDiv = document.getElementById('monitoringList');
       listDiv.innerHTML = '<div class="col-span-full"><h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2">Sebaran 12 Kecamatan</h3></div>';
       Object.keys(STATE.config).sort().forEach(kec => {
-        listDiv.innerHTML += `
-          <div onclick="renderMonitoringDesa('${kec}')" class="card p-5 flex justify-between items-center cursor-pointer hover:border-emerald-500">
-            <div><h3 class="font-black text-slate-800 text-sm">KEC. ${kec}</h3>${renderStats(STATE.config[kec])}</div>
-            <i class="fa-solid fa-chevron-right text-slate-300"></i>
-          </div>`;
+        listDiv.innerHTML += `<div onclick="renderMonitoringDesa('${kec}')" class="card p-5 flex justify-between items-center cursor-pointer hover:border-emerald-500"><div><h3 class="font-black text-slate-800 text-sm">KEC. ${kec}</h3>${renderStats(STATE.config[kec])}</div><i class="fa-solid fa-chevron-right text-slate-300"></i></div>`;
       });
       saveStateCache();
     }
 
     function renderMonitoringDesa(kec) {
       STATE.view = 'DESA'; STATE.kec = kec;
-      document.getElementById('btnBack').classList.remove('hidden'); 
-      document.getElementById('appTitle').innerText = 'KEC. ' + kec;
+      document.getElementById('btnBack').classList.remove('hidden'); document.getElementById('appTitle').innerText = 'KEC. ' + kec;
       document.getElementById('appSubtitle').innerText = 'Daftar Kelurahan/Desa';
       document.getElementById('monitoringSummary').innerHTML = ''; 
       const listDiv = document.getElementById('monitoringList');
       listDiv.innerHTML = `<div class="col-span-full"><h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2">Desa di Kecamatan ${kec}</h3></div>`;
       Object.keys(STATE.config[kec].desas).sort().forEach(desa => {
-        listDiv.innerHTML += `
-          <div class="card p-5 border-l-4 border-l-slate-800 cursor-default">
-            <h3 class="font-bold text-slate-800 text-sm">${desa}</h3>${renderStats(STATE.config[kec].desas[desa])}
-          </div>`;
+        listDiv.innerHTML += `<div class="card p-5 border-l-4 border-l-slate-800 cursor-default"><h3 class="font-bold text-slate-800 text-sm">${desa}</h3>${renderStats(STATE.config[kec].desas[desa])}</div>`;
       });
       saveStateCache();
     }
@@ -415,29 +390,20 @@
       document.getElementById('inputListTitle').innerHTML = '';
       const listDiv = document.getElementById('inputList'); listDiv.innerHTML = '';
       Object.keys(STATE.config).sort().forEach(kec => {
-        listDiv.innerHTML += `
-          <div onclick="renderInputDesa('${kec}')" class="card p-4 md:p-5 flex justify-between items-center cursor-pointer hover:border-emerald-500 transition">
-            <div><h3 class="font-black text-slate-800 text-sm md:text-base">KEC. ${kec}</h3></div>
-            <div class="bg-emerald-50 w-8 h-8 rounded-full flex items-center justify-center text-emerald-600"><i class="fa-solid fa-arrow-right"></i></div>
-          </div>`;
+        listDiv.innerHTML += `<div onclick="renderInputDesa('${kec}')" class="card p-4 md:p-5 flex justify-between items-center cursor-pointer hover:border-emerald-500 transition"><div><h3 class="font-black text-slate-800 text-sm md:text-base">KEC. ${kec}</h3></div><div class="bg-emerald-50 w-8 h-8 rounded-full flex items-center justify-center text-emerald-600"><i class="fa-solid fa-arrow-right"></i></div></div>`;
       });
       saveStateCache();
     }
 
     function renderInputDesa(kec) {
       STATE.view = 'DESA'; STATE.kec = kec;
-      document.getElementById('btnBack').classList.remove('hidden'); 
-      document.getElementById('appTitle').innerText = 'KEC. ' + kec;
+      document.getElementById('btnBack').classList.remove('hidden'); document.getElementById('appTitle').innerText = 'KEC. ' + kec;
       document.getElementById('appSubtitle').innerText = 'Pilih Desa/Kelurahan';
       document.getElementById('inputListTitle').innerHTML = `<h3 class="text-[11px] font-black text-emerald-700 uppercase tracking-widest pl-1 mb-1 mt-2">Pilih Wilayah ${kec}</h3>`;
       const listDiv = document.getElementById('inputList'); listDiv.innerHTML = '';
       Object.keys(STATE.config[kec].desas).sort().forEach(desa => {
         let kosong = STATE.config[kec].desas[desa].kosong;
-        listDiv.innerHTML += `
-          <div onclick="loadInputRows('${kec}', '${desa}')" class="card p-4 md:p-5 flex justify-between items-center cursor-pointer border-l-4 border-l-emerald-600 transition">
-            <div><h3 class="font-bold text-slate-800 text-sm md:text-base">${desa}</h3><p class="text-[10px] md:text-xs text-red-500 font-bold mt-1">${kosong} Data Belum Lengkap</p></div>
-            <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-xs font-bold shadow-sm transition">BUKA</button>
-          </div>`;
+        listDiv.innerHTML += `<div onclick="loadInputRows('${kec}', '${desa}')" class="card p-4 md:p-5 flex justify-between items-center cursor-pointer border-l-4 border-l-emerald-600 transition"><div><h3 class="font-bold text-slate-800 text-sm md:text-base">${desa}</h3><p class="text-[10px] md:text-xs text-red-500 font-bold mt-1">${kosong} Data Belum Lengkap</p></div><button class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-xs font-bold shadow-sm transition">BUKA</button></div>`;
       });
       saveStateCache();
     }
@@ -449,23 +415,12 @@
       document.getElementById('inputListTitle').innerHTML = '';
       const listDiv = document.getElementById('inputList');
       listDiv.innerHTML = `<div class="col-span-full flex flex-col items-center py-12 text-emerald-600"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i><p class="text-xs font-bold uppercase tracking-widest">Mencari Data Pengurus...</p></div>`;
-
       apiFetch('getRows', {kec, desa}).then(res => {
         if(res.status === 'error') throw new Error(res.message);
         listDiv.innerHTML = '';
         res.data.forEach(item => {
           const isDone = item.status === 'SELESAI';
-          listDiv.innerHTML += `
-            <div class="card p-4 flex justify-between items-center bg-white ${isDone ? 'opacity-70 border-slate-200' : 'border-l-4 border-l-blue-600 shadow-md'}">
-              <div class="overflow-hidden mr-3 flex-1">
-                <div class="flex gap-2 mb-1">
-                  <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest bg-slate-100 px-1.5 py-0.5 rounded">Baris ${item.rowIndex}</p>
-                  <p class="text-[9px] text-emerald-700 font-bold uppercase tracking-widest bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">RT ${item.rt}</p>
-                </div>
-                <h3 class="font-bold text-slate-900 text-sm md:text-base truncate uppercase">${item.namaPengurus}</h3>
-              </div>
-              <button onclick='openForm(${JSON.stringify(item)})' class="${isDone ? 'bg-slate-200 text-slate-600' : 'btn-primary'} px-4 py-2 rounded-lg text-xs md:text-sm font-bold uppercase tracking-widest hover:scale-105 transition">EDIT FORM</button>
-            </div>`;
+          listDiv.innerHTML += `<div class="card p-4 flex justify-between items-center bg-white ${isDone ? 'opacity-70 border-slate-200' : 'border-l-4 border-l-blue-600 shadow-md'}"><div class="overflow-hidden mr-3 flex-1"><div class="flex gap-2 mb-1"><p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest bg-slate-100 px-1.5 py-0.5 rounded">Baris ${item.rowIndex}</p><p class="text-[9px] text-emerald-700 font-bold uppercase tracking-widest bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">RT ${item.rt}</p></div><h3 class="font-bold text-slate-900 text-sm md:text-base truncate uppercase">${item.namaPengurus}</h3></div><button onclick='openForm(${JSON.stringify(item)})' class="${isDone ? 'bg-slate-200 text-slate-600' : 'btn-primary'} px-4 py-2 rounded-lg text-xs md:text-sm font-bold uppercase tracking-widest hover:scale-105 transition">EDIT FORM</button></div>`;
         });
         saveStateCache();
       }).catch(err => {
@@ -473,12 +428,9 @@
       });
     }
 
-    // ===================== FORM MODAL & UPLOAD =====================
     function openForm(item) {
-      activeRowIndex = item.rowIndex;
-      pendingChanges = false; 
+      activeRowIndex = item.rowIndex; pendingChanges = false; 
       const cachedData = JSON.parse(localStorage.getItem(`pkh_form_${activeRowIndex}`)) || {};
-
       document.getElementById('modalTitle').innerText = item.namaPengurus;
       document.getElementById('modalSubtitle').innerText = `BARIS ${item.rowIndex} • RT ${item.rt} • ${STATE.desa}`;
       const form = document.getElementById('dataForm');
@@ -486,138 +438,69 @@
       
       STATE.headers.forEach((h, i) => {
         let val = cachedData[i] !== undefined ? cachedData[i] : (item.data[i] || "");
-        const isColumnAN = i <= 13; // Index 0-13 mewakili Kolom A-N
+        const isColumnAN = i <= 13; 
         const hasData = item.data[i].toString().trim() !== "";
-        
-        // Logika Kunci Mati: Kolom A-N hanya bisa diisi jika aslinya kosong. Jika sudah ada, TERKUNCI MATI.
-        // Kolom O+ (Index 14+) FULL EDITABLE (Selalu Terbuka)
         const isLocked = isColumnAN && hasData; 
         const isPhoto = h.toLowerCase().includes('foto');
-        
+        const isKesesuaian = h.toUpperCase().includes('KESE');
+
         let fieldHtml = '';
         if (isPhoto) {
           const isChecked = cachedData[`skip_${i}`] ? 'checked' : '';
-          
           let oldLinkHtml = '';
           if (val !== "" && val !== "-" && val.includes("http")) {
-              oldLinkHtml = `<a href="${val}" target="_blank" class="text-blue-600 underline text-[10px] ml-2 bg-blue-50 px-2 py-1 rounded font-bold hover:bg-blue-100 transition"><i class="fa-solid fa-up-right-from-square mr-1"></i>Cek Foto Lama</a>`;
+              oldLinkHtml = `<a href="${val}" target="_blank" class="text-blue-600 underline text-[10px] ml-2 bg-blue-50 px-2 py-1 rounded font-bold hover:bg-blue-100 transition"><i class="fa-solid fa-up-right-from-square mr-1"></i>Cek Foto</a>`;
           } else if (val === "-") {
               oldLinkHtml = `<span class="text-slate-400 text-[10px] ml-2 bg-slate-100 px-2 py-1 rounded font-bold"><i class="fa-solid fa-ban mr-1"></i>Abaikan</span>`;
           }
-
           if (isLocked) {
-             fieldHtml = `<div class="w-full flex items-center justify-center gap-2 p-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 text-xs font-bold"><i class="fa-solid fa-lock text-slate-400"></i> FOTO MASTER TERKUNCI</div>`;
+             fieldHtml = `<div class="w-full flex items-center justify-center gap-2 p-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 text-xs font-bold"><i class="fa-solid fa-lock text-slate-400"></i> MASTER TERKUNCI</div>`;
           } else {
-             fieldHtml = `
-              <div id="photoWrap_${i}" class="photo-wrap w-full mt-1">
-                <label class="flex flex-col items-center justify-center w-full p-3 border border-emerald-400 border-dashed rounded-lg bg-emerald-50 text-emerald-700 cursor-pointer hover:bg-emerald-100 transition active:scale-95">
-                  <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-camera text-lg"></i>
-                    <span class="text-xs md:text-sm font-bold">Pilih / Ganti Foto (Auto Crop)</span>
-                  </div>
-                  <input type="file" accept="image/*" id="inputCol_${i}" data-old='${val}' class="hidden" onchange="document.getElementById('lbl_file_${i}').innerText = this.files[0] ? this.files[0].name : ''; markFormChanged();">
-                </label>
-                <div id="lbl_file_${i}" class="text-[10px] text-emerald-600 font-bold mt-1 text-center truncate"></div>
-              </div>
-              <label class="flex items-center gap-2 mt-2 cursor-pointer bg-slate-50 p-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition w-full">
-                 <input type="checkbox" id="skipPhoto_${i}" onchange="toggleSkipPhoto(${i})" ${isChecked} class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
-                 <span class="text-xs font-bold text-slate-700">Tandai: Tidak perlu foto (Abaikan)</span>
-              </label>
-            `;
+             fieldHtml = `<div id="photoWrap_${i}" class="photo-wrap w-full mt-1"><label class="flex flex-col items-center justify-center w-full p-3 border border-emerald-400 border-dashed rounded-lg bg-emerald-50 text-emerald-700 cursor-pointer hover:bg-emerald-100 transition active:scale-95"><div class="flex items-center gap-2"><i class="fa-solid fa-camera text-lg"></i><span class="text-xs md:text-sm font-bold">Pilih / Ganti Foto</span></div><input type="file" accept="image/*" id="inputCol_${i}" data-old='${val}' class="hidden" onchange="document.getElementById('lbl_file_${i}').innerText = this.files[0] ? this.files[0].name : ''; markFormChanged();"></label><div id="lbl_file_${i}" class="text-[10px] text-emerald-600 font-bold mt-1 text-center truncate"></div></div><label class="flex items-center gap-2 mt-2 cursor-pointer bg-slate-50 p-2.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition w-full"><input type="checkbox" id="skipPhoto_${i}" onchange="toggleSkipPhoto(${i})" ${isChecked} class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"><span class="text-xs font-bold text-slate-700">Tandai: Tidak perlu foto</span></label>`;
           }
-
-          form.innerHTML += `
-            <div class="flex flex-col gap-1.5 p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
-              <label class="text-[10px] md:text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center justify-between">
-                <div class="flex items-center">${h} ${oldLinkHtml}</div>
-                ${isLocked ? '<span class="text-slate-400"><i class="fa-solid fa-lock mr-1"></i>MASTER</span>' : '<span class="text-blue-600"><i class="fa-solid fa-pen-to-square mr-1"></i>EDITABLE</span>'}
-              </label>
-              ${fieldHtml}
-            </div>`;
-
+        } else if (isKesesuaian && !isLocked) {
+          fieldHtml = `
+            <select id="inputCol_${i}" onchange="markFormChanged()" class="w-full p-3 rounded-lg text-sm md:text-base font-semibold transition border border-emerald-400 focus:ring-2 focus:ring-emerald-200 focus:outline-none bg-white">
+              <option value="" ${val === "" ? "selected" : ""}>-- Pilih Status --</option>
+              <option value="SESUAI" ${val === "SESUAI" ? "selected" : ""}>SESUAI</option>
+              <option value="TIDAK SESUAI" ${val === "TIDAK SESUAI" ? "selected" : ""}>TIDAK SESUAI</option>
+            </select>`;
+        } else if (isKesesuaian && isLocked) {
+          fieldHtml = `<input type="text" id="inputCol_${i}" value="${val}" readonly class="w-full p-3 rounded-lg text-sm md:text-base font-semibold transition border border-emerald-400 focus:ring-2 focus:ring-emerald-200 focus:outline-none bg-slate-50 text-slate-500">`;
         } else {
           fieldHtml = `<input type="text" id="inputCol_${i}" value="${val}" ${isLocked ? 'readonly' : 'oninput="markFormChanged()"'} class="w-full p-3 rounded-lg text-sm md:text-base font-semibold transition border border-emerald-400 focus:ring-2 focus:ring-emerald-200 focus:outline-none" placeholder="Ketik data...">`;
-          
-          form.innerHTML += `
-            <div class="flex flex-col gap-1.5 p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
-              <label class="text-[10px] md:text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center justify-between">
-                <span>${h}</span>
-                ${isLocked ? '<span class="text-slate-400"><i class="fa-solid fa-lock mr-1"></i>MASTER</span>' : '<span class="text-blue-600"><i class="fa-solid fa-pen-to-square mr-1"></i>EDITABLE</span>'}
-              </label>
-              ${fieldHtml}
-            </div>`;
         }
+        
+        form.innerHTML += `<div class="flex flex-col gap-1.5 p-3 bg-white border border-slate-200 rounded-xl shadow-sm"><label class="text-[10px] md:text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center justify-between"><span>${h}</span>${isLocked ? '<span class="text-slate-400"><i class="fa-solid fa-lock mr-1"></i>MASTER</span>' : '<span class="text-blue-600"><i class="fa-solid fa-pen-to-square mr-1"></i>EDITABLE</span>'}</label>${fieldHtml}</div>`;
       });
-      
-      document.getElementById('formModal').classList.remove('hidden'); 
-      document.getElementById('formModal').classList.add('flex');
-
-      setTimeout(() => {
-        STATE.headers.forEach((h, i) => {
-           const cb = document.getElementById(`skipPhoto_${i}`);
-           if (cb && cb.checked) toggleSkipPhoto(i);
-        });
-      }, 50);
+      document.getElementById('formModal').classList.remove('hidden'); document.getElementById('formModal').classList.add('flex');
+      setTimeout(() => { STATE.headers.forEach((h, i) => { const cb = document.getElementById(`skipPhoto_${i}`); if (cb && cb.checked) toggleSkipPhoto(i); }); }, 50);
     }
 
-    function closeForm() {
-      activeRowIndex = null;
-      document.getElementById('formModal').classList.add('hidden'); 
-      document.getElementById('formModal').classList.remove('flex');
-      document.getElementById('autoSaveStatus').classList.add('hidden');
-    }
+    function closeForm() { activeRowIndex = null; document.getElementById('formModal').classList.add('hidden'); document.getElementById('formModal').classList.remove('flex'); document.getElementById('autoSaveStatus').classList.add('hidden'); }
 
     async function manualSubmit() {
-      const btn = document.getElementById('btnSave');
-      const oldHtml = btn.innerHTML;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> MENYINKRONKAN...';
-      btn.disabled = true;
-
+      const btn = document.getElementById('btnSave'); const oldHtml = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> MENYINKRONKAN...'; btn.disabled = true;
       try {
         const updates = new Array(STATE.headers.length).fill("");
-
         for(let i=0; i<STATE.headers.length; i++) {
-          const skipCb = document.getElementById(`skipPhoto_${i}`);
-          const input = document.getElementById(`inputCol_${i}`);
-          
-          if (skipCb && skipCb.checked) {
-            updates[i] = "-"; 
-          } else if (input) {
+          const skipCb = document.getElementById(`skipPhoto_${i}`); const input = document.getElementById(`inputCol_${i}`);
+          if (skipCb && skipCb.checked) { updates[i] = "-"; } else if (input) {
             if(input.type === 'file') {
                if(input.files.length > 0) {
-                 btn.innerHTML = '<i class="fa-solid fa-compress fa-beat mr-2"></i> MEMOTONG FOTO 80x130...';
+                 btn.innerHTML = '<i class="fa-solid fa-compress fa-beat mr-2"></i> MEMOTONG FOTO...';
                  const compressedBase64 = await compressImage(input.files[0]);
-                 updates[i] = { 
-                   type: 'file', 
-                   filename: input.files[0].name, 
-                   mimeType: 'image/jpeg',
-                   base64: compressedBase64.split(',')[1] 
-                 };
-               } else {
-                 updates[i] = input.getAttribute('data-old') || "";
-               }
-            } else {
-               updates[i] = input.value;
-            }
+                 updates[i] = { type: 'file', filename: input.files[0].name, mimeType: 'image/jpeg', base64: compressedBase64.split(',')[1] };
+               } else { updates[i] = input.getAttribute('data-old') || ""; }
+            } else { updates[i] = input.value; }
           }
         }
-
-        btn.innerHTML = '<i class="fa-solid fa-server fa-beat mr-2"></i> MENGIRIM FINAL...';
         const res = await apiPost('submitData', { rowIndex: activeRowIndex, updates });
-        
         if(res.status === 'error') throw new Error(res.message);
-        
         localStorage.removeItem(`pkh_form_${activeRowIndex}`);
-        alert("✅ SUKSES: Data Tersimpan di Server!");
-        closeForm();
-        syncData(); 
-
-      } catch (err) {
-        alert("❌ GAGAL: " + err.message);
-      } finally {
-        btn.innerHTML = oldHtml;
-        btn.disabled = false;
-      }
+        alert("✅ SUKSES: Sinkronisasi Final Berhasil!"); closeForm(); syncData(); 
+      } catch (err) { alert("❌ GAGAL: " + err.message); } finally { btn.innerHTML = oldHtml; btn.disabled = false; }
     }
   </script>
 </body>
