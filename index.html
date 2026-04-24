@@ -81,7 +81,7 @@
           <i class="fa-solid fa-shield-halved text-blue-600 text-xl mt-1"></i>
           <div>
             <h3 class="font-bold text-blue-900 text-sm">Mode Eksekusi Lapangan</h3>
-            <p class="text-xs text-blue-700 mt-1 leading-relaxed">Sistem sudah dioptimalkan untuk HP kentang/Low-end. Upload foto dijamin cepat tanpa macet.</p>
+            <p class="text-xs text-blue-700 mt-1 leading-relaxed">Sistem dioptimalkan untuk performa tinggi. Blueprint Kunci aktif. Tombol foto anti-gagal untuk semua tipe HP.</p>
           </div>
         </div>
         <div id="inputListTitle" class="w-full"></div>
@@ -96,7 +96,7 @@
             <li class="flex gap-3 items-start"><i class="fa-solid fa-1 text-emerald-600 mt-1"></i> Buka tab <strong>Form Input</strong>.</li>
             <li class="flex gap-3 items-start"><i class="fa-solid fa-2 text-emerald-600 mt-1"></i> Pilih Kecamatan dan Desa tujuan.</li>
             <li class="flex gap-3 items-start"><i class="fa-solid fa-3 text-emerald-600 mt-1"></i> Temukan nama, klik tombol <span class="bg-emerald-600 text-white px-2 py-0.5 rounded text-[10px]">FORM</span>.</li>
-            <li class="flex gap-3 items-start"><i class="fa-solid fa-4 text-emerald-600 mt-1"></i> Area abu-abu otomatis terkunci. Isi kolom kosong.</li>
+            <li class="flex gap-3 items-start"><i class="fa-solid fa-4 text-emerald-600 mt-1"></i> Area abu-abu otomatis terkunci Blueprint. Isi kolom kosong.</li>
           </ul>
 
           <div class="p-5 bg-blue-50 border border-blue-200 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
@@ -148,7 +148,7 @@
 
   <script>
     // =========================================================================
-    // ⚠️ GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT ANDA (YANG BARU!)
+    // ⚠️ GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT ANDA
     // =========================================================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbyQMRzeKbux-KZtgHRoBQjnjQ6LkKawZjYiTi3I-gL8psFG9jbNQV5tQVH_1XOjsOVqlA/exec';
 
@@ -174,7 +174,7 @@
       return await res.json();
     }
 
-    // FUNGSI KOMPRESI UNTUK HP KENTANG (Ringan & Cepat)
+    // KOMPRESI SUPER RINGAN UNTUK HP LOW-END
     function compressImage(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -184,8 +184,7 @@
           img.src = event.target.result;
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            // Menurunkan batas resolusi menjadi 800px untuk menghemat RAM HP
-            const MAX_WIDTH = 800; 
+            const MAX_WIDTH = 800; // Optimal untuk HP low-end, mencegah RAM penuh
             const MAX_HEIGHT = 800;
             let width = img.width;
             let height = img.height;
@@ -201,12 +200,11 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
             
-            // Kualitas 50% = Sangat cepat dikirim & hemat kuota
-            resolve(canvas.toDataURL('image/jpeg', 0.5));
+            resolve(canvas.toDataURL('image/jpeg', 0.5)); // Kompresi 50%
           };
-          img.onerror = () => reject(new Error("Gagal kompresi foto"));
+          img.onerror = () => reject(new Error("Gagal memuat gambar untuk kompresi"));
         };
-        reader.onerror = () => reject(new Error("Gagal membaca file foto"));
+        reader.onerror = () => reject(new Error("Gagal membaca file"));
       });
     }
 
@@ -362,7 +360,6 @@
         
         res.data.forEach(item => {
           const isDone = item.status === 'SELESAI';
-          // DI SINI KITA MUNCULKAN NAMA BESERTA RT-NYA
           listDiv.innerHTML += `
             <div class="card p-4 flex justify-between items-center bg-white ${isDone ? 'opacity-60 border-slate-200' : 'border-l-4 border-l-blue-600'}">
               <div class="overflow-hidden mr-3 flex-1">
@@ -397,9 +394,17 @@
           if (isLocked) {
             fieldHtml = `<a href="${val}" target="_blank" class="w-full flex items-center justify-center gap-2 p-3 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 text-xs font-bold hover:bg-slate-200 transition"><i class="fa-solid fa-image text-emerald-600"></i> Cek Berkas Foto</a>`;
           } else {
-            // TOMBOL UPLOAD DIROMBAK TOTAL: Sangat aman untuk klik di HP kentang. 
-            // Tidak ada ikon absolut yang menimpa input.
-            fieldHtml = `<input type="file" accept="image/*" id="inputCol_${i}" class="block w-full text-sm text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-emerald-400 rounded-lg bg-white p-1">`;
+            // FIX: Menggunakan metode <label> standar HTML5 yang dijamin 100% responsif di HP kentang
+            fieldHtml = `
+              <label class="flex flex-col items-center justify-center w-full p-3 border border-emerald-400 border-dashed rounded-lg bg-emerald-50 text-emerald-700 cursor-pointer hover:bg-emerald-100 transition active:scale-95">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-camera text-lg"></i>
+                  <span class="text-xs md:text-sm font-bold">Pilih Foto / Buka Kamera</span>
+                </div>
+                <input type="file" accept="image/*" id="inputCol_${i}" class="hidden" onchange="document.getElementById('lbl_file_${i}').innerText = this.files[0] ? this.files[0].name : ''">
+              </label>
+              <div id="lbl_file_${i}" class="text-[10px] text-emerald-600 font-bold mt-1 text-center truncate"></div>
+            `;
           }
         } else {
           fieldHtml = `<input type="text" id="inputCol_${i}" value="${val}" ${isLocked ? 'readonly' : ''} class="w-full p-3 rounded-lg text-sm md:text-base font-semibold transition" placeholder="Ketik data...">`;
@@ -439,7 +444,6 @@
 
           if(input.type === 'file' && input.files.length > 0) {
             btn.innerHTML = '<i class="fa-solid fa-compress fa-beat mr-2"></i> MENYIAPKAN FOTO...';
-            // Panggil fungsi kompresi super ringan
             const compressedBase64 = await compressImage(input.files[0]);
             
             updates[i] = { 
