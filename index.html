@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SDM PKH Tapin | Super App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+    body { background-color: #f1f5f9; font-family: 'Inter', sans-serif; color: #0f172a; -webkit-tap-highlight-color: transparent; }
+    /* Premium Sharp Design */
+    .card { background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: transform 0.1s ease; }
+    .card:active { transform: scale(0.98); border-color: #059669; }
+    .btn-primary { background-color: #059669; color: white; border-radius: 8px; font-weight: 700; transition: background 0.2s; letter-spacing: 0.5px; }
+    .btn-primary:active { background-color: #047857; }
+    /* Bottom Navigation */
+    .nav-item { flex: 1; text-align: center; padding: 14px 0; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .nav-item.active { color: #059669; border-top: 3px solid #059669; background: linear-gradient(to top, rgba(5, 150, 105, 0.05), transparent); }
+    .nav-item i { display: block; font-size: 20px; margin-bottom: 5px; }
+    /* Blueprint Inputs */
+    input:read-only { background-color: #f8fafc; color: #64748b; border: 1px solid #cbd5e1; pointer-events: none; }
+    input:not(:read-only) { background-color: #ffffff; border: 1px solid #059669; color: #0f172a; }
+    input:focus { outline: none; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2); }
+    ::-webkit-scrollbar { width: 0px; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-slate-50">
+
+  <header class="bg-slate-900 text-white p-4 shadow-md flex justify-between items-center shrink-0 z-20">
+    <div class="flex items-center gap-3">
+      <button id="btnBack" onclick="goBack()" class="hidden w-9 h-9 rounded bg-slate-800 flex items-center justify-center active:bg-slate-700 transition">
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
+      <div>
+        <h1 id="appTitle" class="text-base font-bold tracking-tight">SDM PKH TAPIN</h1>
+        <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest mt-0.5">Sistem Data Wilayah</p>
+      </div>
+    </div>
+    <button onclick="syncData()" class="w-9 h-9 rounded bg-slate-800 flex items-center justify-center active:bg-slate-700">
+      <i class="fa-solid fa-rotate text-emerald-400"></i>
+    </button>
+  </header>
+
+  <main class="flex-1 overflow-y-auto p-4 pb-24 relative" id="mainContainer">
+    
+    <div id="loader" class="flex flex-col items-center justify-center h-full text-emerald-600">
+      <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4"></i>
+      <p class="font-bold text-xs uppercase tracking-widest text-slate-500">Menghubungkan ke API...</p>
+    </div>
+
+    <div id="errorBox" class="hidden bg-red-100 border-l-4 border-red-600 text-red-800 p-4 rounded-md mb-4 shadow-sm text-sm font-bold"></div>
+
+    <div id="tabMonitoring" class="hidden space-y-4">
+      <div id="monitoringSummary"></div>
+      <div id="monitoringList" class="space-y-3"></div>
+    </div>
+
+    <div id="tabInput" class="hidden space-y-4">
+      <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl flex gap-3 items-start shadow-sm">
+        <i class="fa-solid fa-shield-halved text-blue-600 text-xl"></i>
+        <div>
+          <h3 class="font-bold text-blue-900 text-sm">Mode Eksekusi Lapangan</h3>
+          <p class="text-xs text-blue-700 mt-1 leading-relaxed">Pilih wilayah untuk menginput data. Fitur Blueprint otomatis mengunci data yang sudah diverifikasi (warna abu-abu).</p>
+        </div>
+      </div>
+      <div id="inputList" class="space-y-3"></div>
+    </div>
+
+    <div id="tabPetunjuk" class="hidden space-y-4">
+      <div class="card p-6 border-t-4 border-t-emerald-600">
+        <h2 class="font-black text-lg text-slate-800 mb-4 uppercase tracking-tight"><i class="fa-solid fa-book text-emerald-600 mr-2"></i>SOP 2026</h2>
+        <ul class="space-y-3 text-sm text-slate-600 font-semibold">
+          <li class="flex gap-3 items-start"><i class="fa-solid fa-1 text-emerald-600 mt-1"></i> Buka tab <strong>Form Input</strong>.</li>
+          <li class="flex gap-3 items-start"><i class="fa-solid fa-2 text-emerald-600 mt-1"></i> Pilih Kecamatan dan Desa spesifik.</li>
+          <li class="flex gap-3 items-start"><i class="fa-solid fa-3 text-emerald-600 mt-1"></i> Cari Nama Pengurus, tap tombol <span class="bg-emerald-600 text-white px-2 py-0.5 rounded text-[10px]">ISI FORM</span>.</li>
+          <li class="flex gap-3 items-start"><i class="fa-solid fa-4 text-emerald-600 mt-1"></i> Area bergaris hijau wajib diisi. Area abu-abu tidak bisa dimanipulasi.</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-between shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] z-20 pb-safe">
+    <button onclick="switchTab('monitoring')" id="nav-monitoring" class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Monitoring</button>
+    <button onclick="switchTab('input')" id="nav-input" class="nav-item relative">
+      <i class="fa-solid fa-pen-to-square"></i> Form Input
+      <span id="badgeInput" class="absolute top-2 right-8 w-2 h-2 bg-red-500 rounded-full hidden"></span>
+    </button>
+    <button onclick="switchTab('petunjuk')" id="nav-petunjuk" class="nav-item"><i class="fa-solid fa-circle-info"></i> Petunjuk</button>
+  </nav>
+
+  <div id="formModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex-col justify-end p-0 sm:p-4 backdrop-blur-sm">
+    <div class="bg-white w-full sm:max-w-md sm:mx-auto rounded-t-2xl sm:rounded-xl shadow-2xl flex flex-col h-[90vh] sm:h-[85vh] border-t-4 border-t-emerald-600">
+      
+      <div class="p-5 border-b border-slate-100 flex justify-between items-start bg-slate-50 rounded-t-2xl">
+        <div class="pr-4">
+          <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mb-1" id="modalSubtitle"></p>
+          <h2 class="text-lg font-black text-slate-800 leading-tight" id="modalTitle"></h2>
+        </div>
+        <button onclick="closeForm()" class="w-8 h-8 bg-slate-200 text-slate-600 rounded-full flex justify-center items-center font-bold active:bg-slate-300"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <div class="p-5 overflow-y-auto flex-1 bg-white">
+        <form id="dataForm" onsubmit="submitData(event)" class="space-y-5"></form>
+      </div>
+
+      <div class="p-4 border-t border-slate-100 bg-white">
+        <button type="submit" form="dataForm" id="btnSave" class="w-full py-4 btn-primary text-sm uppercase tracking-widest shadow-lg shadow-emerald-600/30">
+          <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Simpan ke Server
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // MASUKKAN URL DEPLOYMENT GOOGLE APPS SCRIPT ANDA DI BAWAH INI
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyQMRzeKbux-KZtgHRoBQjnjQ6LkKawZjYiTi3I-gL8psFG9jbNQV5tQVH_1XOjsOVqlA/exec';
+
+    let STATE = { tab: 'monitoring', view: 'KEC', kec: '', desa: '', config: null, overall: null, headers: [] };
+
+    document.addEventListener("DOMContentLoaded", syncData);
+
+    // FETCHING ENGINE VIA VERCEL TO GAS API
+    async function apiFetch(action, params = {}) {
+      const url = new URL(API_URL);
+      url.searchParams.append('action', action);
+      Object.keys(params).forEach(k => url.searchParams.append(k, params[k]));
+      const res = await fetch(url);
+      return await res.json();
+    }
+
+    async function apiPost(action, dataPayload) {
+      // Menggunakan fetch POST dengan content-type text/plain agar GAS tidak memblokir CORS OPTIONS
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: action, data: dataPayload }),
+        redirect: 'follow'
+      });
+      return await res.json();
+    }
+
+    function syncData() {
+      document.getElementById('loader').classList.remove('hidden');
+      ['Monitoring', 'Input', 'Petunjuk'].forEach(t => document.getElementById('tab'+t).classList.add('hidden'));
+      document.getElementById('errorBox').classList.add('hidden');
+      
+      apiFetch('getConfig').then(res => {
+        document.getElementById('loader').classList.add('hidden');
+        if(res.status === 'error') throw new Error(res.message);
+        
+        STATE.config = res.stats; STATE.overall = res.overall; STATE.headers = res.headers;
+        document.getElementById('badgeInput').style.display = res.overall.kosong > 0 ? 'block' : 'none';
+        switchTab(STATE.tab, true);
+      }).catch(err => {
+        document.getElementById('loader').classList.add('hidden');
+        document.getElementById('errorBox').innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> ${err.message}`;
+        document.getElementById('errorBox').classList.remove('hidden');
+      });
+    }
+
+    function switchTab(tabName, force = false) {
+      if (STATE.tab === tabName && !force && STATE.view === 'KEC') return;
+      STATE.tab = tabName; STATE.view = 'KEC';
+
+      ['monitoring', 'input', 'petunjuk'].forEach(t => {
+        document.getElementById(`nav-${t}`).classList.remove('active');
+        document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden');
+      });
+      document.getElementById(`nav-${tabName}`).classList.add('active');
+      document.getElementById(`tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`).classList.remove('hidden');
+
+      document.getElementById('btnBack').classList.add('hidden');
+      document.getElementById('appTitle').innerText = 'SDM PKH TAPIN';
+
+      if (tabName === 'monitoring') renderMonitoringKec();
+      else if (tabName === 'input') renderInputKec();
+    }
+
+    function goBack() {
+      if (STATE.view === 'ROWS') { STATE.tab === 'input' ? renderInputDesa(STATE.kec) : renderMonitoringDesa(STATE.kec); } 
+      else if (STATE.view === 'DESA') { STATE.tab === 'input' ? renderInputKec() : renderMonitoringKec(); }
+    }
+
+    // ================= RENDERING LOGIC =================
+
+    function renderStats(d) {
+      return `
+        <div class="flex gap-2 mt-2">
+          <span class="text-[10px] font-black tracking-widest uppercase bg-slate-100 text-slate-600 px-2 py-1 rounded">ALL: ${d.total}</span>
+          <span class="text-[10px] font-black tracking-widest uppercase bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100">KSG: ${d.kosong}</span>
+          <span class="text-[10px] font-black tracking-widest uppercase bg-emerald-50 text-emerald-700 px-2 py-1 rounded border border-emerald-100">OK: ${d.isi}</span>
+        </div>`;
+    }
+
+    function renderMonitoringKec() {
+      STATE.view = 'KEC'; document.getElementById('btnBack').classList.add('hidden');
+      const sumDiv = document.getElementById('monitoringSummary');
+      sumDiv.innerHTML = `
+        <div class="bg-slate-900 text-white rounded-xl p-6 shadow-lg relative overflow-hidden">
+          <div class="absolute right-0 top-0 w-32 h-32 bg-emerald-600 rounded-full blur-3xl opacity-20"></div>
+          <h2 class="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mb-4">Statistik Total Kabupaten</h2>
+          <div class="flex justify-between items-end">
+            <div><p class="text-xs text-slate-400 font-semibold mb-1">TOTAL DATA</p><p class="font-black text-3xl">${STATE.overall.total}</p></div>
+            <div class="text-right"><p class="text-xs text-red-400 font-semibold mb-1">KOSONG</p><p class="font-black text-xl">${STATE.overall.kosong}</p></div>
+            <div class="text-right"><p class="text-xs text-emerald-400 font-semibold mb-1">SELESAI</p><p class="font-black text-xl">${STATE.overall.isi}</p></div>
+          </div>
+        </div>`;
+
+      const listDiv = document.getElementById('monitoringList');
+      listDiv.innerHTML = '<h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-6 mb-2 pl-1">Data 12 Kecamatan</h3>';
+      Object.keys(STATE.config).sort().forEach(kec => {
+        listDiv.innerHTML += `
+          <div onclick="renderMonitoringDesa('${kec}')" class="card p-5 flex justify-between items-center cursor-pointer">
+            <div><h3 class="font-black text-slate-800 text-sm">KEC. ${kec}</h3>${renderStats(STATE.config[kec])}</div>
+            <i class="fa-solid fa-chevron-right text-slate-300"></i>
+          </div>`;
+      });
+    }
+
+    function renderMonitoringDesa(kec) {
+      STATE.view = 'DESA'; STATE.kec = kec;
+      document.getElementById('btnBack').classList.remove('hidden'); document.getElementById('appTitle').innerText = 'KEC. ' + kec;
+      document.getElementById('monitoringSummary').innerHTML = ''; 
+      const listDiv = document.getElementById('monitoringList');
+      listDiv.innerHTML = `<h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-2 mb-2 pl-1">Desa di Kecamatan ${kec}</h3>`;
+
+      Object.keys(STATE.config[kec].desas).sort().forEach(desa => {
+        listDiv.innerHTML += `
+          <div class="card p-5 border-l-4 border-l-slate-800 cursor-default mb-3">
+            <h3 class="font-bold text-slate-800 text-sm">${desa}</h3>${renderStats(STATE.config[kec].desas[desa])}
+          </div>`;
+      });
+    }
+
+    function renderInputKec() {
+      STATE.view = 'KEC'; document.getElementById('btnBack').classList.add('hidden');
+      const listDiv = document.getElementById('inputList'); listDiv.innerHTML = '';
+      Object.keys(STATE.config).sort().forEach(kec => {
+        listDiv.innerHTML += `
+          <div onclick="renderInputDesa('${kec}')" class="card p-5 flex justify-between items-center cursor-pointer hover:border-emerald-500">
+            <div><h3 class="font-black text-slate-800 text-sm">KEC. ${kec}</h3></div>
+            <div class="bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center text-emerald-600"><i class="fa-solid fa-arrow-right"></i></div>
+          </div>`;
+      });
+    }
+
+    function renderInputDesa(kec) {
+      STATE.view = 'DESA'; STATE.kec = kec;
+      document.getElementById('btnBack').classList.remove('hidden'); document.getElementById('appTitle').innerText = 'KEC. ' + kec;
+      const listDiv = document.getElementById('inputList'); listDiv.innerHTML = '';
+      Object.keys(STATE.config[kec].desas).sort().forEach(desa => {
+        let kosong = STATE.config[kec].desas[desa].kosong;
+        listDiv.innerHTML += `
+          <div onclick="loadInputRows('${kec}', '${desa}')" class="card p-5 flex justify-between items-center cursor-pointer border-l-4 border-l-emerald-600 mb-3">
+            <div><h3 class="font-bold text-slate-800 text-sm">${desa}</h3><p class="text-[11px] text-red-500 font-bold mt-1">${kosong} Baris Kosong</p></div>
+            <button class="bg-emerald-600 text-white px-4 py-2 rounded border border-emerald-700 text-xs font-bold shadow-sm active:scale-95">BUKA</button>
+          </div>`;
+      });
+    }
+
+    function loadInputRows(kec, desa) {
+      STATE.view = 'ROWS'; STATE.desa = desa;
+      document.getElementById('appTitle').innerText = desa;
+      const listDiv = document.getElementById('inputList');
+      listDiv.innerHTML = `<div class="flex flex-col items-center py-12 text-emerald-600"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i><p class="text-xs font-bold">Mencari Database...</p></div>`;
+
+      apiFetch('getRows', {kec, desa}).then(res => {
+        if(res.status === 'error') throw new Error(res.message);
+        listDiv.innerHTML = '';
+        res.data.forEach(item => {
+          const isDone = item.status === 'SELESAI';
+          listDiv.innerHTML += `
+            <div class="card p-4 flex justify-between items-center mb-3 bg-white ${isDone ? 'opacity-60 border-slate-200' : 'border-l-4 border-l-blue-600'}">
+              <div class="overflow-hidden mr-3 flex-1">
+                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Row Excel: ${item.rowIndex}</p>
+                <h3 class="font-bold text-slate-900 text-sm truncate">${item.namaPengurus}</h3>
+              </div>
+              <button onclick='openForm(${JSON.stringify(item)})' class="${isDone ? 'bg-slate-200 text-slate-500' : 'btn-primary'} px-4 py-2 rounded text-[11px] uppercase tracking-widest">FORM</button>
+            </div>`;
+        });
+      }).catch(err => alert("Gagal mengambil data: " + err.message));
+    }
+
+    function openForm(item) {
+      document.getElementById('modalTitle').innerText = item.namaPengurus;
+      document.getElementById('modalSubtitle').innerText = `BARIS ${item.rowIndex} • ${STATE.desa}`;
+      const form = document.getElementById('dataForm');
+      form.innerHTML = `<input type="hidden" id="formRowIndex" value="${item.rowIndex}">`;
+      
+      STATE.headers.forEach((h, i) => {
+        const val = item.data[i] || "";
+        const isLocked = val.toString().trim() !== "";
+        const isPhoto = h.toLowerCase().includes('foto');
+        
+        let fieldHtml = '';
+        if (isPhoto) {
+          if (isLocked) {
+            fieldHtml = `<a href="${val}" target="_blank" class="w-full flex items-center justify-center gap-2 p-3 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 text-xs font-bold"><i class="fa-solid fa-image text-emerald-600"></i> Cek Berkas</a>`;
+          } else {
+            fieldHtml = `<div class="relative w-full"><i class="fa-solid fa-camera absolute left-3.5 top-3.5 text-emerald-600"></i><input type="file" accept="image/*" capture="environment" id="inputCol_${i}" class="w-full text-xs pl-10 pr-3 py-3 border border-emerald-500 rounded-lg bg-white file:hidden font-medium"></div>`;
+          }
+        } else {
+          fieldHtml = `<input type="text" id="inputCol_${i}" value="${val}" ${isLocked ? 'readonly' : ''} class="w-full p-3 rounded-lg text-sm font-semibold transition" placeholder="Ketik data...">`;
+        }
+
+        form.innerHTML += `
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex justify-between">
+              ${h} ${isLocked ? '<span class="text-slate-400"><i class="fa-solid fa-lock mr-1"></i>TERKUNCI</span>' : '<span class="text-emerald-600"><i class="fa-solid fa-pen mr-1"></i>KOSONG</span>'}
+            </label>
+            ${fieldHtml}
+          </div>`;
+      });
+      document.getElementById('formModal').classList.remove('hidden'); document.getElementById('formModal').classList.add('flex');
+    }
+
+    function closeForm() {
+      document.getElementById('formModal').classList.add('hidden'); document.getElementById('formModal').classList.remove('flex');
+    }
+
+    async function submitData(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSave');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> MENGIRIM DATA...';
+      btn.disabled = true;
+
+      try {
+        const rowIndex = document.getElementById('formRowIndex').value;
+        const updates = new Array(STATE.headers.length).fill("");
+
+        // Baca form, konversi file ke base64
+        for(let i=0; i<STATE.headers.length; i++) {
+          const input = document.getElementById(`inputCol_${i}`);
+          if(!input) continue;
+
+          if(input.type === 'file' && input.files.length > 0) {
+            btn.innerHTML = '<i class="fa-solid fa-camera fa-fade mr-2"></i> KOMPRESI GAMBAR...';
+            const file = input.files[0];
+            const base64 = await new Promise((res, rej) => {
+              const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file);
+            });
+            // Siapkan object untuk dikirim ke API POST
+            updates[i] = { type: 'file', filename: file.name, mimeType: file.type, base64: base64.split(',')[1] };
+          } else {
+            updates[i] = input.value;
+          }
+        }
+
+        btn.innerHTML = '<i class="fa-solid fa-server fa-beat mr-2"></i> SINKRONISASI SERVER...';
+        const res = await apiPost('submitData', { rowIndex, updates });
+        
+        if(res.status === 'error') throw new Error(res.message);
+        
+        alert("✅ " + res.message);
+        closeForm();
+        syncData(); // Reload master data statisik
+
+      } catch (err) {
+        alert("❌ Gagal: " + err.message);
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-2"></i> Simpan ke Server';
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
