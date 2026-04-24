@@ -10,28 +10,21 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
     body { background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #0f172a; -webkit-tap-highlight-color: transparent; }
     
-    /* Global Container Setup for True Responsiveness */
     .app-container { min-height: 100dvh; display: flex; flex-direction: column; }
     .main-content { flex: 1; overflow-y: auto; width: 100%; max-w: 1200px; margin: 0 auto; padding: 1rem; padding-bottom: 6rem; }
-    
-    @media (min-width: 768px) {
-      .main-content { padding-bottom: 2rem; } /* Remove bottom padding on Desktop */
-    }
+    @media (min-width: 768px) { .main-content { padding-bottom: 2rem; } }
 
-    /* Cards & Buttons */
     .card { background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: transform 0.1s ease; }
     .card:active { transform: scale(0.98); border-color: #059669; }
     .btn-primary { background-color: #059669; color: white; border-radius: 8px; font-weight: 700; transition: background 0.2s; letter-spacing: 0.5px; cursor: pointer; }
     .btn-primary:active, .btn-primary:hover { background-color: #047857; }
     
-    /* Navigations */
     .nav-item { flex: 1; text-align: center; padding: 12px 0; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
     .nav-item.active { color: #059669; border-top: 3px solid #059669; background: linear-gradient(to top, rgba(5, 150, 105, 0.05), transparent); }
     .desktop-nav-item { color: #94a3b8; font-size: 13px; font-weight: 700; text-transform: uppercase; padding: 8px 16px; border-radius: 8px; transition: all 0.2s; cursor: pointer;}
     .desktop-nav-item.active { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
     .desktop-nav-item:hover { color: #10b981; }
 
-    /* Inputs */
     input:read-only { background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; pointer-events: none; }
     input:not(:read-only) { background-color: #ffffff; border: 1px solid #059669; color: #0f172a; }
     input:focus { outline: none; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2); }
@@ -72,7 +65,6 @@
     </header>
 
     <main class="main-content" id="mainContainer">
-      
       <div id="loader" class="flex flex-col items-center justify-center h-[60vh] text-emerald-600">
         <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4"></i>
         <p class="font-bold text-xs uppercase tracking-widest text-slate-500">SINKRONISASI DATA...</p>
@@ -85,11 +77,11 @@
       </div>
 
       <div id="tabInput" class="hidden space-y-5">
-        <div class="bg-blue-50 border border-blue-200 p-4 md:p-5 rounded-xl flex gap-3 items-start shadow-sm">
-          <i class="fa-solid fa-shield-halved text-blue-600 text-xl md:text-2xl"></i>
+        <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl flex gap-3 items-start shadow-sm">
+          <i class="fa-solid fa-shield-halved text-blue-600 text-xl mt-1"></i>
           <div>
-            <h3 class="font-bold text-blue-900 text-sm md:text-base">Mode Eksekusi Lapangan</h3>
-            <p class="text-xs md:text-sm text-blue-700 mt-1 leading-relaxed">Pilih wilayah lalu klik tombol <b>FORM</b>. Sistem akan mengompresi foto secara otomatis (Hemat kuota & Anti-Gagal).</p>
+            <h3 class="font-bold text-blue-900 text-sm">Mode Eksekusi Lapangan</h3>
+            <p class="text-xs text-blue-700 mt-1 leading-relaxed">Sistem sudah dioptimalkan untuk HP kentang/Low-end. Upload foto dijamin cepat tanpa macet.</p>
           </div>
         </div>
         <div id="inputListTitle" class="w-full"></div>
@@ -97,14 +89,14 @@
       </div>
 
       <div id="tabPetunjuk" class="hidden space-y-5 max-w-3xl mx-auto">
-        <div class="card p-6 md:p-8 border-t-4 border-t-emerald-600 bg-white shadow-md">
-          <h2 class="font-black text-xl md:text-2xl text-slate-800 mb-6 uppercase tracking-tight"><i class="fa-solid fa-book text-emerald-600 mr-2"></i>Panduan SOP 2026</h2>
+        <div class="card p-6 border-t-4 border-t-emerald-600 bg-white shadow-md">
+          <h2 class="font-black text-xl text-slate-800 mb-6 uppercase tracking-tight"><i class="fa-solid fa-book text-emerald-600 mr-2"></i>Panduan SOP 2026</h2>
           
-          <ul class="space-y-4 text-sm md:text-base text-slate-600 font-semibold mb-8">
+          <ul class="space-y-4 text-sm text-slate-600 font-semibold mb-8">
             <li class="flex gap-3 items-start"><i class="fa-solid fa-1 text-emerald-600 mt-1"></i> Buka tab <strong>Form Input</strong>.</li>
             <li class="flex gap-3 items-start"><i class="fa-solid fa-2 text-emerald-600 mt-1"></i> Pilih Kecamatan dan Desa tujuan.</li>
             <li class="flex gap-3 items-start"><i class="fa-solid fa-3 text-emerald-600 mt-1"></i> Temukan nama, klik tombol <span class="bg-emerald-600 text-white px-2 py-0.5 rounded text-[10px]">FORM</span>.</li>
-            <li class="flex gap-3 items-start"><i class="fa-solid fa-4 text-emerald-600 mt-1"></i> Data berlatar abu-abu terkunci Blueprint. Isi kolom yang masih bergaris hijau.</li>
+            <li class="flex gap-3 items-start"><i class="fa-solid fa-4 text-emerald-600 mt-1"></i> Area abu-abu otomatis terkunci. Isi kolom kosong.</li>
           </ul>
 
           <div class="p-5 bg-blue-50 border border-blue-200 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
@@ -116,7 +108,6 @@
               <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i> Lihat Disini
             </a>
           </div>
-
         </div>
       </div>
     </main>
@@ -130,10 +121,12 @@
       <button onclick="switchTab('petunjuk')" id="mnav-petunjuk" class="nav-item"><i class="fa-solid fa-circle-info"></i> Petunjuk</button>
     </nav>
 
-  </div> <div id="formModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex-col justify-end md:justify-center p-0 md:p-4 backdrop-blur-sm">
+  </div>
+
+  <div id="formModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex-col justify-end md:justify-center p-0 md:p-4 backdrop-blur-none md:backdrop-blur-sm">
     <div class="bg-white w-full max-w-full md:max-w-3xl md:mx-auto rounded-t-3xl md:rounded-2xl shadow-2xl flex flex-col h-[90dvh] md:h-[85dvh] border-t-4 border-t-emerald-600 overflow-hidden">
       
-      <div class="p-5 border-b border-slate-100 flex justify-between items-start bg-slate-50">
+      <div class="p-4 md:p-5 border-b border-slate-100 flex justify-between items-start bg-slate-50">
         <div class="pr-4">
           <p class="text-[10px] md:text-xs text-emerald-600 font-bold uppercase tracking-widest mb-1" id="modalSubtitle"></p>
           <h2 class="text-lg md:text-xl font-black text-slate-800 leading-tight uppercase" id="modalTitle"></h2>
@@ -141,8 +134,8 @@
         <button onclick="closeForm()" class="w-8 h-8 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-full flex justify-center items-center font-bold transition cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
       </div>
       
-      <div class="p-5 md:p-6 overflow-y-auto flex-1 bg-white">
-        <form id="dataForm" onsubmit="submitData(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"></form>
+      <div class="p-4 md:p-6 overflow-y-auto flex-1 bg-white">
+        <form id="dataForm" onsubmit="submitData(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5"></form>
       </div>
 
       <div class="p-4 md:p-5 border-t border-slate-100 bg-white">
@@ -155,15 +148,13 @@
 
   <script>
     // =========================================================================
-    // ⚠️ GANTI URL DI BAWAH INI DENGAN URL DEPLOYMENT APPS SCRIPT ANDA
+    // ⚠️ GANTI URL INI DENGAN URL DEPLOYMENT APPS SCRIPT ANDA (YANG BARU!)
     // =========================================================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbyQMRzeKbux-KZtgHRoBQjnjQ6LkKawZjYiTi3I-gL8psFG9jbNQV5tQVH_1XOjsOVqlA/exec';
 
     let STATE = { tab: 'monitoring', view: 'KEC', kec: '', desa: '', config: null, overall: null, headers: [] };
 
     document.addEventListener("DOMContentLoaded", syncData);
-
-    // ===================== KONEKSI API & KOMPRESI =====================
     
     async function apiFetch(action, params = {}) {
       const url = new URL(API_URL);
@@ -183,7 +174,7 @@
       return await res.json();
     }
 
-    // FUNGSI KOMPRESI GAMBAR (Mengubah 5MB menjadi ~150KB)
+    // FUNGSI KOMPRESI UNTUK HP KENTANG (Ringan & Cepat)
     function compressImage(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -193,8 +184,9 @@
           img.src = event.target.result;
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 1200; // Standar resolusi dokumen yang tajam tapi ringan
-            const MAX_HEIGHT = 1200;
+            // Menurunkan batas resolusi menjadi 800px untuk menghemat RAM HP
+            const MAX_WIDTH = 800; 
+            const MAX_HEIGHT = 800;
             let width = img.width;
             let height = img.height;
 
@@ -209,16 +201,14 @@
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
             
-            // Output format JPEG kualitas 60%
-            resolve(canvas.toDataURL('image/jpeg', 0.6));
+            // Kualitas 50% = Sangat cepat dikirim & hemat kuota
+            resolve(canvas.toDataURL('image/jpeg', 0.5));
           };
-          img.onerror = () => reject(new Error("Gagal memuat gambar untuk dikompresi"));
+          img.onerror = () => reject(new Error("Gagal kompresi foto"));
         };
-        reader.onerror = () => reject(new Error("Gagal membaca file"));
+        reader.onerror = () => reject(new Error("Gagal membaca file foto"));
       });
     }
-
-    // ===================== LOGIKA SISTEM & NAVIGASI =====================
 
     function syncData() {
       document.getElementById('loader').classList.remove('hidden');
@@ -231,7 +221,6 @@
         
         STATE.config = res.stats; STATE.overall = res.overall; STATE.headers = res.headers;
         
-        // Notifikasi Lencana Merah
         const hasEmpty = res.overall.kosong > 0;
         document.getElementById('badgeInputDesktop').style.display = hasEmpty ? 'block' : 'none';
         document.getElementById('badgeInputMobile').style.display = hasEmpty ? 'block' : 'none';
@@ -239,7 +228,7 @@
         switchTab(STATE.tab, true);
       }).catch(err => {
         document.getElementById('loader').classList.add('hidden');
-        document.getElementById('errorBox').innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> ${err.message}`;
+        document.getElementById('errorBox').innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> Gagal Memuat API: ${err.message}`;
         document.getElementById('errorBox').classList.remove('hidden');
       });
     }
@@ -248,7 +237,6 @@
       if (STATE.tab === tabName && !force && STATE.view === 'KEC') return;
       STATE.tab = tabName; STATE.view = 'KEC';
 
-      // Update Navigasi Aktif (Mobile & Desktop)
       ['monitoring', 'input', 'petunjuk'].forEach(t => {
         document.getElementById(`mnav-${t}`).classList.remove('active');
         document.getElementById(`dnav-${t}`).classList.remove('active');
@@ -261,7 +249,7 @@
       document.getElementById('btnBack').classList.add('hidden');
       document.getElementById('appTitle').innerText = 'SDM PKH TAPIN';
       document.getElementById('appSubtitle').innerText = 'Sistem Data Wilayah';
-      document.getElementById('inputListTitle').innerHTML = ''; // Clear title
+      document.getElementById('inputListTitle').innerHTML = '';
 
       if (tabName === 'monitoring') renderMonitoringKec();
       else if (tabName === 'input') renderInputKec();
@@ -281,15 +269,14 @@
         </div>`;
     }
 
-    // ===================== RENDER MONITORING =====================
-
+    // MONITORING
     function renderMonitoringKec() {
       STATE.view = 'KEC'; document.getElementById('btnBack').classList.add('hidden');
       
       document.getElementById('monitoringSummary').innerHTML = `
         <div class="bg-slate-900 text-white rounded-xl p-6 shadow-lg relative overflow-hidden mb-6">
           <div class="absolute right-0 top-0 w-40 h-40 bg-emerald-600 rounded-full blur-3xl opacity-20"></div>
-          <h2 class="text-xs text-emerald-400 font-bold tracking-widest uppercase mb-6">Statistik Total Kabupaten</h2>
+          <h2 class="text-[10px] md:text-xs text-emerald-400 font-bold tracking-widest uppercase mb-6">Statistik Total Kabupaten</h2>
           <div class="flex justify-between items-end">
             <div><p class="text-[10px] md:text-xs text-slate-400 font-semibold mb-1">TOTAL DATA</p><p class="font-black text-2xl md:text-3xl">${STATE.overall.total}</p></div>
             <div class="text-right"><p class="text-[10px] md:text-xs text-red-400 font-semibold mb-1">KOSONG</p><p class="font-black text-xl md:text-2xl">${STATE.overall.kosong}</p></div>
@@ -327,8 +314,7 @@
       });
     }
 
-    // ===================== RENDER FORM INPUT =====================
-
+    // FORM INPUT
     function renderInputKec() {
       STATE.view = 'KEC'; document.getElementById('btnBack').classList.add('hidden');
       document.getElementById('inputListTitle').innerHTML = '';
@@ -336,8 +322,8 @@
       
       Object.keys(STATE.config).sort().forEach(kec => {
         listDiv.innerHTML += `
-          <div onclick="renderInputDesa('${kec}')" class="card p-5 flex justify-between items-center cursor-pointer hover:border-emerald-500 hover:shadow-md transition">
-            <div><h3 class="font-black text-slate-800 text-sm">KEC. ${kec}</h3></div>
+          <div onclick="renderInputDesa('${kec}')" class="card p-4 md:p-5 flex justify-between items-center cursor-pointer hover:border-emerald-500 transition">
+            <div><h3 class="font-black text-slate-800 text-sm md:text-base">KEC. ${kec}</h3></div>
             <div class="bg-emerald-50 w-8 h-8 rounded-full flex items-center justify-center text-emerald-600"><i class="fa-solid fa-arrow-right"></i></div>
           </div>`;
       });
@@ -355,8 +341,8 @@
       Object.keys(STATE.config[kec].desas).sort().forEach(desa => {
         let kosong = STATE.config[kec].desas[desa].kosong;
         listDiv.innerHTML += `
-          <div onclick="loadInputRows('${kec}', '${desa}')" class="card p-5 flex justify-between items-center cursor-pointer border-l-4 border-l-emerald-600 hover:shadow-md transition">
-            <div><h3 class="font-bold text-slate-800 text-sm">${desa}</h3><p class="text-[11px] text-red-500 font-bold mt-1">${kosong} Data Kosong</p></div>
+          <div onclick="loadInputRows('${kec}', '${desa}')" class="card p-4 md:p-5 flex justify-between items-center cursor-pointer border-l-4 border-l-emerald-600 transition">
+            <div><h3 class="font-bold text-slate-800 text-sm md:text-base">${desa}</h3><p class="text-[10px] md:text-xs text-red-500 font-bold mt-1">${kosong} Data Kosong</p></div>
             <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-xs font-bold shadow-sm transition">BUKA</button>
           </div>`;
       });
@@ -366,10 +352,9 @@
       STATE.view = 'ROWS'; STATE.desa = desa;
       document.getElementById('appTitle').innerText = desa;
       document.getElementById('appSubtitle').innerText = 'Daftar Pengurus';
-      
       document.getElementById('inputListTitle').innerHTML = '';
       const listDiv = document.getElementById('inputList');
-      listDiv.innerHTML = `<div class="col-span-full flex flex-col items-center py-12 text-emerald-600"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i><p class="text-xs font-bold uppercase tracking-widest">Menarik Data ${desa}...</p></div>`;
+      listDiv.innerHTML = `<div class="col-span-full flex flex-col items-center py-12 text-emerald-600"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i><p class="text-xs font-bold uppercase tracking-widest">Mencari Data Pengurus...</p></div>`;
 
       apiFetch('getRows', {kec, desa}).then(res => {
         if(res.status === 'error') throw new Error(res.message);
@@ -377,25 +362,28 @@
         
         res.data.forEach(item => {
           const isDone = item.status === 'SELESAI';
+          // DI SINI KITA MUNCULKAN NAMA BESERTA RT-NYA
           listDiv.innerHTML += `
-            <div class="card p-4 md:p-5 flex justify-between items-center bg-white ${isDone ? 'opacity-60 border-slate-200' : 'border-l-4 border-l-blue-600'}">
+            <div class="card p-4 flex justify-between items-center bg-white ${isDone ? 'opacity-60 border-slate-200' : 'border-l-4 border-l-blue-600'}">
               <div class="overflow-hidden mr-3 flex-1">
-                <p class="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Baris: ${item.rowIndex}</p>
+                <div class="flex gap-2 mb-1">
+                  <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest bg-slate-100 px-1.5 py-0.5 rounded">Baris ${item.rowIndex}</p>
+                  <p class="text-[9px] text-emerald-700 font-bold uppercase tracking-widest bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">RT ${item.rt}</p>
+                </div>
                 <h3 class="font-bold text-slate-900 text-sm md:text-base truncate uppercase">${item.namaPengurus}</h3>
               </div>
-              <button onclick='openForm(${JSON.stringify(item)})' class="${isDone ? 'bg-slate-200 text-slate-500' : 'btn-primary'} px-4 py-2 md:px-5 md:py-2.5 rounded text-[11px] md:text-xs uppercase tracking-widest">FORM</button>
+              <button onclick='openForm(${JSON.stringify(item)})' class="${isDone ? 'bg-slate-200 text-slate-500' : 'btn-primary'} px-4 py-2 rounded-lg text-xs md:text-sm font-bold uppercase tracking-widest">FORM</button>
             </div>`;
         });
       }).catch(err => {
-        listDiv.innerHTML = `<div class="col-span-full text-center text-red-600 font-bold">Gagal mengambil data: ${err.message}</div>`;
+        listDiv.innerHTML = `<div class="col-span-full text-center text-red-600 font-bold p-4 bg-red-50 rounded">Gagal mengambil data: ${err.message}</div>`;
       });
     }
 
-    // ===================== LOGIKA FORM & UPLOAD DATA =====================
-
+    // FORM MODAL & UPLOAD
     function openForm(item) {
       document.getElementById('modalTitle').innerText = item.namaPengurus;
-      document.getElementById('modalSubtitle').innerText = `BARIS ${item.rowIndex} • ${STATE.desa}`;
+      document.getElementById('modalSubtitle').innerText = `BARIS ${item.rowIndex} • RT ${item.rt} • ${STATE.desa}`;
       const form = document.getElementById('dataForm');
       form.innerHTML = `<input type="hidden" id="formRowIndex" value="${item.rowIndex}">`;
       
@@ -409,10 +397,12 @@
           if (isLocked) {
             fieldHtml = `<a href="${val}" target="_blank" class="w-full flex items-center justify-center gap-2 p-3 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 text-xs font-bold hover:bg-slate-200 transition"><i class="fa-solid fa-image text-emerald-600"></i> Cek Berkas Foto</a>`;
           } else {
-            fieldHtml = `<div class="relative w-full"><i class="fa-solid fa-camera absolute left-3.5 top-3.5 text-emerald-600 text-lg"></i><input type="file" accept="image/*" capture="environment" id="inputCol_${i}" class="w-full text-xs md:text-sm pl-10 pr-3 py-3 border border-emerald-500 rounded-lg bg-white file:hidden font-medium cursor-pointer text-slate-600"></div>`;
+            // TOMBOL UPLOAD DIROMBAK TOTAL: Sangat aman untuk klik di HP kentang. 
+            // Tidak ada ikon absolut yang menimpa input.
+            fieldHtml = `<input type="file" accept="image/*" id="inputCol_${i}" class="block w-full text-sm text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-emerald-400 rounded-lg bg-white p-1">`;
           }
         } else {
-          fieldHtml = `<input type="text" id="inputCol_${i}" value="${val}" ${isLocked ? 'readonly' : ''} class="w-full p-3 md:p-3.5 rounded-lg text-sm md:text-base font-semibold transition" placeholder="Ketik data...">`;
+          fieldHtml = `<input type="text" id="inputCol_${i}" value="${val}" ${isLocked ? 'readonly' : ''} class="w-full p-3 rounded-lg text-sm md:text-base font-semibold transition" placeholder="Ketik data...">`;
         }
 
         form.innerHTML += `
@@ -448,14 +438,14 @@
           if(!input) continue;
 
           if(input.type === 'file' && input.files.length > 0) {
-            btn.innerHTML = '<i class="fa-solid fa-compress fa-beat mr-2"></i> MENGKOMPRESI FOTO...';
-            // PROSES KOMPRESI GAMBAR BERJALAN DI SINI
+            btn.innerHTML = '<i class="fa-solid fa-compress fa-beat mr-2"></i> MENYIAPKAN FOTO...';
+            // Panggil fungsi kompresi super ringan
             const compressedBase64 = await compressImage(input.files[0]);
             
             updates[i] = { 
               type: 'file', 
               filename: input.files[0].name, 
-              mimeType: 'image/jpeg', // Telah diubah menjadi JPEG oleh compressor
+              mimeType: 'image/jpeg',
               base64: compressedBase64.split(',')[1] 
             };
           } else {
@@ -463,12 +453,12 @@
           }
         }
 
-        btn.innerHTML = '<i class="fa-solid fa-server fa-beat mr-2"></i> MENGIRIM KE SERVER...';
+        btn.innerHTML = '<i class="fa-solid fa-server fa-beat mr-2"></i> MENGIRIM DATA...';
         const res = await apiPost('submitData', { rowIndex, updates });
         
         if(res.status === 'error') throw new Error(res.message);
         
-        alert("✅ BERHASIL: " + res.message);
+        alert("✅ SUKSES: " + res.message);
         closeForm();
         syncData(); 
 
