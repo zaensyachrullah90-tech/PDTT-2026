@@ -2,114 +2,151 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>SDM PKH Tapin | 2026</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
-    body { background-color: #f1f5f9; font-family: 'Inter', sans-serif; color: #0f172a; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #0f172a; -webkit-tap-highlight-color: transparent; }
     
-    /* Desain Elemen Utama */
+    /* Global Container Setup for True Responsiveness */
+    .app-container { min-height: 100dvh; display: flex; flex-direction: column; }
+    .main-content { flex: 1; overflow-y: auto; width: 100%; max-w: 1200px; margin: 0 auto; padding: 1rem; padding-bottom: 6rem; }
+    
+    @media (min-width: 768px) {
+      .main-content { padding-bottom: 2rem; } /* Remove bottom padding on Desktop */
+    }
+
+    /* Cards & Buttons */
     .card { background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: transform 0.1s ease; }
     .card:active { transform: scale(0.98); border-color: #059669; }
-    .btn-primary { background-color: #059669; color: white; border-radius: 8px; font-weight: 700; transition: background 0.2s; letter-spacing: 0.5px; }
-    .btn-primary:active { background-color: #047857; }
+    .btn-primary { background-color: #059669; color: white; border-radius: 8px; font-weight: 700; transition: background 0.2s; letter-spacing: 0.5px; cursor: pointer; }
+    .btn-primary:active, .btn-primary:hover { background-color: #047857; }
     
-    /* Navigasi Bawah (SPA) */
-    .nav-item { flex: 1; text-align: center; padding: 14px 0; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    /* Navigations */
+    .nav-item { flex: 1; text-align: center; padding: 12px 0; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
     .nav-item.active { color: #059669; border-top: 3px solid #059669; background: linear-gradient(to top, rgba(5, 150, 105, 0.05), transparent); }
-    .nav-item i { display: block; font-size: 20px; margin-bottom: 5px; }
-    
-    /* Form & Blueprint Input */
-    input:read-only { background-color: #f8fafc; color: #64748b; border: 1px solid #cbd5e1; pointer-events: none; }
+    .desktop-nav-item { color: #94a3b8; font-size: 13px; font-weight: 700; text-transform: uppercase; padding: 8px 16px; border-radius: 8px; transition: all 0.2s; cursor: pointer;}
+    .desktop-nav-item.active { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .desktop-nav-item:hover { color: #10b981; }
+
+    /* Inputs */
+    input:read-only { background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; pointer-events: none; }
     input:not(:read-only) { background-color: #ffffff; border: 1px solid #059669; color: #0f172a; }
     input:focus { outline: none; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2); }
-    ::-webkit-scrollbar { width: 0px; background: transparent; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
   </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden bg-slate-50">
+<body class="bg-slate-50">
 
-  <header class="bg-slate-900 text-white p-4 shadow-md flex justify-between items-center shrink-0 z-20">
-    <div class="flex items-center gap-3">
-      <button id="btnBack" onclick="goBack()" class="hidden w-9 h-9 rounded bg-slate-800 flex items-center justify-center active:bg-slate-700 transition">
-        <i class="fa-solid fa-arrow-left"></i>
-      </button>
-      <div>
-        <h1 id="appTitle" class="text-base font-bold tracking-tight">SDM PKH TAPIN</h1>
-        <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest mt-0.5" id="appSubtitle">Sistem Data Wilayah</p>
-      </div>
-    </div>
-    <button onclick="syncData()" class="w-9 h-9 rounded bg-slate-800 flex items-center justify-center active:bg-slate-700 shadow-sm">
-      <i class="fa-solid fa-rotate text-emerald-400"></i>
-    </button>
-  </header>
-
-  <main class="flex-1 overflow-y-auto p-4 pb-24 relative" id="mainContainer">
-    
-    <div id="loader" class="flex flex-col items-center justify-center h-full text-emerald-600">
-      <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4"></i>
-      <p class="font-bold text-xs uppercase tracking-widest text-slate-500">MENGHUBUNGKAN KE SERVER...</p>
-    </div>
-
-    <div id="errorBox" class="hidden bg-red-100 border-l-4 border-red-600 text-red-800 p-4 rounded-md mb-4 shadow-sm text-sm font-bold"></div>
-
-    <div id="tabMonitoring" class="hidden space-y-4">
-      <div id="monitoringSummary"></div>
-      <div id="monitoringList" class="space-y-3"></div>
-    </div>
-
-    <div id="tabInput" class="hidden space-y-4">
-      <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl flex gap-3 items-start shadow-sm">
-        <i class="fa-solid fa-shield-halved text-blue-600 text-xl"></i>
+  <div class="app-container">
+    <header class="bg-slate-900 text-white p-4 shadow-md flex justify-between items-center shrink-0 z-20 sticky top-0">
+      <div class="flex items-center gap-3">
+        <button id="btnBack" onclick="goBack()" class="hidden w-9 h-9 rounded bg-slate-800 flex items-center justify-center hover:bg-slate-700 transition cursor-pointer">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
         <div>
-          <h3 class="font-bold text-blue-900 text-sm">Mode Eksekusi Lapangan</h3>
-          <p class="text-xs text-blue-700 mt-1 leading-relaxed">Sistem Blueprint aktif. Anda hanya diizinkan melengkapi data kosong. Data lama otomatis terkunci server.</p>
+          <h1 id="appTitle" class="text-base md:text-lg font-black tracking-tight">SDM PKH TAPIN</h1>
+          <p class="text-[10px] md:text-xs text-emerald-400 font-bold uppercase tracking-widest mt-0.5" id="appSubtitle">Sistem Data Wilayah</p>
         </div>
       </div>
-      <div id="inputList" class="space-y-3"></div>
-    </div>
 
-    <div id="tabPetunjuk" class="hidden space-y-4">
-      <div class="card p-6 border-t-4 border-t-emerald-600">
-        <h2 class="font-black text-lg text-slate-800 mb-4 uppercase tracking-tight"><i class="fa-solid fa-book text-emerald-600 mr-2"></i>SOP 2026</h2>
-        <ul class="space-y-3 text-sm text-slate-600 font-semibold">
-          <li class="flex gap-3 items-start"><i class="fa-solid fa-1 text-emerald-600 mt-1"></i> Buka tab <strong>Form Input</strong> di bawah layar.</li>
-          <li class="flex gap-3 items-start"><i class="fa-solid fa-2 text-emerald-600 mt-1"></i> Pilih Kecamatan dan Desa tujuan.</li>
-          <li class="flex gap-3 items-start"><i class="fa-solid fa-3 text-emerald-600 mt-1"></i> Temukan nama, lalu klik tombol <span class="bg-emerald-600 text-white px-2 py-0.5 rounded text-[10px]">FORM</span>.</li>
-          <li class="flex gap-3 items-start"><i class="fa-solid fa-4 text-emerald-600 mt-1"></i> Untuk foto, tap ikon kamera dan kamera HP akan langsung terbuka.</li>
-          <li class="flex gap-3 items-start"><i class="fa-solid fa-check-double text-emerald-600 mt-1"></i> Pastikan jaringan stabil saat menekan tombol Simpan.</li>
-        </ul>
+      <div class="hidden md:flex items-center gap-2" id="desktopNav">
+        <button onclick="switchTab('monitoring')" id="dnav-monitoring" class="desktop-nav-item active"><i class="fa-solid fa-chart-pie mr-2"></i>Monitoring</button>
+        <button onclick="switchTab('input')" id="dnav-input" class="desktop-nav-item relative">
+          <i class="fa-solid fa-pen-to-square mr-2"></i>Form Input
+          <span id="badgeInputDesktop" class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-slate-900 hidden animate-pulse"></span>
+        </button>
+        <button onclick="switchTab('petunjuk')" id="dnav-petunjuk" class="desktop-nav-item"><i class="fa-solid fa-circle-info mr-2"></i>Petunjuk</button>
+        <div class="w-px h-6 bg-slate-700 mx-2"></div>
+        <button onclick="syncData()" class="w-9 h-9 rounded bg-slate-800 flex items-center justify-center hover:bg-slate-700 shadow-sm cursor-pointer" title="Refresh Data">
+          <i class="fa-solid fa-rotate text-emerald-400"></i>
+        </button>
       </div>
-    </div>
-  </main>
 
-  <nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-between shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] z-20 pb-safe">
-    <button onclick="switchTab('monitoring')" id="nav-monitoring" class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Monitoring</button>
-    <button onclick="switchTab('input')" id="nav-input" class="nav-item relative">
-      <i class="fa-solid fa-pen-to-square"></i> Form Input
-      <span id="badgeInput" class="absolute top-2 right-8 w-2.5 h-2.5 bg-red-500 rounded-full border border-white hidden animate-pulse"></span>
-    </button>
-    <button onclick="switchTab('petunjuk')" id="nav-petunjuk" class="nav-item"><i class="fa-solid fa-circle-info"></i> Petunjuk</button>
-  </nav>
+      <button onclick="syncData()" class="md:hidden w-9 h-9 rounded bg-slate-800 flex items-center justify-center active:bg-slate-700 shadow-sm">
+        <i class="fa-solid fa-rotate text-emerald-400"></i>
+      </button>
+    </header>
 
-  <div id="formModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex-col justify-end p-0 sm:p-4 backdrop-blur-sm">
-    <div class="bg-white w-full sm:max-w-md sm:mx-auto rounded-t-2xl sm:rounded-xl shadow-2xl flex flex-col h-[90vh] sm:h-[85vh] border-t-4 border-t-emerald-600">
+    <main class="main-content" id="mainContainer">
       
-      <div class="p-5 border-b border-slate-100 flex justify-between items-start bg-slate-50 rounded-t-2xl">
+      <div id="loader" class="flex flex-col items-center justify-center h-[60vh] text-emerald-600">
+        <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4"></i>
+        <p class="font-bold text-xs uppercase tracking-widest text-slate-500">SINKRONISASI DATA...</p>
+      </div>
+      <div id="errorBox" class="hidden bg-red-100 border-l-4 border-red-600 text-red-800 p-4 rounded-md mb-4 shadow-sm text-sm font-bold"></div>
+
+      <div id="tabMonitoring" class="hidden space-y-5">
+        <div id="monitoringSummary" class="max-w-3xl"></div>
+        <div id="monitoringList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <div id="tabInput" class="hidden space-y-5">
+        <div class="bg-blue-50 border border-blue-200 p-4 md:p-5 rounded-xl flex gap-3 items-start shadow-sm">
+          <i class="fa-solid fa-shield-halved text-blue-600 text-xl md:text-2xl"></i>
+          <div>
+            <h3 class="font-bold text-blue-900 text-sm md:text-base">Mode Eksekusi Lapangan</h3>
+            <p class="text-xs md:text-sm text-blue-700 mt-1 leading-relaxed">Pilih wilayah lalu klik tombol <b>FORM</b>. Sistem akan mengompresi foto secara otomatis (Hemat kuota & Anti-Gagal).</p>
+          </div>
+        </div>
+        <div id="inputListTitle" class="w-full"></div>
+        <div id="inputList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <div id="tabPetunjuk" class="hidden space-y-5 max-w-3xl mx-auto">
+        <div class="card p-6 md:p-8 border-t-4 border-t-emerald-600 bg-white shadow-md">
+          <h2 class="font-black text-xl md:text-2xl text-slate-800 mb-6 uppercase tracking-tight"><i class="fa-solid fa-book text-emerald-600 mr-2"></i>Panduan SOP 2026</h2>
+          
+          <ul class="space-y-4 text-sm md:text-base text-slate-600 font-semibold mb-8">
+            <li class="flex gap-3 items-start"><i class="fa-solid fa-1 text-emerald-600 mt-1"></i> Buka tab <strong>Form Input</strong>.</li>
+            <li class="flex gap-3 items-start"><i class="fa-solid fa-2 text-emerald-600 mt-1"></i> Pilih Kecamatan dan Desa tujuan.</li>
+            <li class="flex gap-3 items-start"><i class="fa-solid fa-3 text-emerald-600 mt-1"></i> Temukan nama, klik tombol <span class="bg-emerald-600 text-white px-2 py-0.5 rounded text-[10px]">FORM</span>.</li>
+            <li class="flex gap-3 items-start"><i class="fa-solid fa-4 text-emerald-600 mt-1"></i> Data berlatar abu-abu terkunci Blueprint. Isi kolom yang masih bergaris hijau.</li>
+          </ul>
+
+          <div class="p-5 bg-blue-50 border border-blue-200 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="text-center md:text-left">
+              <h3 class="font-bold text-blue-900 text-base">Video / Dokumen Petunjuk</h3>
+              <p class="text-xs md:text-sm text-blue-700 mt-1">Pelajari cara pengisian secara lengkap di sini.</p>
+            </div>
+            <a href="https://drive.google.com/file/d/1Rax-LyrpyQTcFzO73qNmJUJxZy0GuFgH/view?usp=drive_link" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-xs md:text-sm font-bold uppercase tracking-widest shadow-md transition whitespace-nowrap">
+              <i class="fa-solid fa-arrow-up-right-from-square mr-2"></i> Lihat Disini
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </main>
+
+    <nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-slate-200 flex justify-between shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)] z-20 pb-safe">
+      <button onclick="switchTab('monitoring')" id="mnav-monitoring" class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Monitoring</button>
+      <button onclick="switchTab('input')" id="mnav-input" class="nav-item relative">
+        <i class="fa-solid fa-pen-to-square"></i> Form Input
+        <span id="badgeInputMobile" class="absolute top-2 right-8 w-2.5 h-2.5 bg-red-500 rounded-full border border-white hidden animate-pulse"></span>
+      </button>
+      <button onclick="switchTab('petunjuk')" id="mnav-petunjuk" class="nav-item"><i class="fa-solid fa-circle-info"></i> Petunjuk</button>
+    </nav>
+
+  </div> <div id="formModal" class="fixed inset-0 bg-slate-900/90 z-50 hidden flex-col justify-end md:justify-center p-0 md:p-4 backdrop-blur-sm">
+    <div class="bg-white w-full max-w-full md:max-w-3xl md:mx-auto rounded-t-3xl md:rounded-2xl shadow-2xl flex flex-col h-[90dvh] md:h-[85dvh] border-t-4 border-t-emerald-600 overflow-hidden">
+      
+      <div class="p-5 border-b border-slate-100 flex justify-between items-start bg-slate-50">
         <div class="pr-4">
-          <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mb-1" id="modalSubtitle"></p>
-          <h2 class="text-lg font-black text-slate-800 leading-tight" id="modalTitle"></h2>
+          <p class="text-[10px] md:text-xs text-emerald-600 font-bold uppercase tracking-widest mb-1" id="modalSubtitle"></p>
+          <h2 class="text-lg md:text-xl font-black text-slate-800 leading-tight uppercase" id="modalTitle"></h2>
         </div>
-        <button onclick="closeForm()" class="w-8 h-8 bg-slate-200 text-slate-600 rounded-full flex justify-center items-center font-bold active:bg-slate-300"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeForm()" class="w-8 h-8 bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-full flex justify-center items-center font-bold transition cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
       </div>
       
-      <div class="p-5 overflow-y-auto flex-1 bg-white">
-        <form id="dataForm" onsubmit="submitData(event)" class="space-y-5"></form>
+      <div class="p-5 md:p-6 overflow-y-auto flex-1 bg-white">
+        <form id="dataForm" onsubmit="submitData(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"></form>
       </div>
 
-      <div class="p-4 border-t border-slate-100 bg-white">
-        <button type="submit" form="dataForm" id="btnSave" class="w-full py-4 btn-primary text-sm uppercase tracking-widest shadow-lg shadow-emerald-600/30">
+      <div class="p-4 md:p-5 border-t border-slate-100 bg-white">
+        <button type="submit" form="dataForm" id="btnSave" class="w-full py-4 btn-primary text-sm md:text-base uppercase tracking-widest shadow-lg shadow-emerald-600/30">
           <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Simpan ke Server
         </button>
       </div>
@@ -119,29 +156,24 @@
   <script>
     // =========================================================================
     // ⚠️ GANTI URL DI BAWAH INI DENGAN URL DEPLOYMENT APPS SCRIPT ANDA
-    // Pastikan URL diakhiri dengan "/exec"
     // =========================================================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbyQMRzeKbux-KZtgHRoBQjnjQ6LkKawZjYiTi3I-gL8psFG9jbNQV5tQVH_1XOjsOVqlA/exec';
 
     let STATE = { tab: 'monitoring', view: 'KEC', kec: '', desa: '', config: null, overall: null, headers: [] };
 
-    // Jalankan sinkronisasi data saat aplikasi pertama kali dibuka
     document.addEventListener("DOMContentLoaded", syncData);
 
-    // ===================== MESIN KONEKSI API (ANTI-CORS) =====================
+    // ===================== KONEKSI API & KOMPRESI =====================
     
     async function apiFetch(action, params = {}) {
       const url = new URL(API_URL);
       url.searchParams.append('action', action);
       Object.keys(params).forEach(k => url.searchParams.append(k, params[k]));
-      
-      // 'follow' mencegah browser memblokir sistem redirect Google
       const res = await fetch(url, { method: 'GET', redirect: 'follow' });
       return await res.json();
     }
 
     async function apiPost(action, dataPayload) {
-      // Mengirim POST sebagai 'text/plain' untuk melewati filter Preflight CORS
       const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -149,6 +181,41 @@
         redirect: 'follow'
       });
       return await res.json();
+    }
+
+    // FUNGSI KOMPRESI GAMBAR (Mengubah 5MB menjadi ~150KB)
+    function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 1200; // Standar resolusi dokumen yang tajam tapi ringan
+            const MAX_HEIGHT = 1200;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+            } else {
+              if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Output format JPEG kualitas 60%
+            resolve(canvas.toDataURL('image/jpeg', 0.6));
+          };
+          img.onerror = () => reject(new Error("Gagal memuat gambar untuk dikompresi"));
+        };
+        reader.onerror = () => reject(new Error("Gagal membaca file"));
+      });
     }
 
     // ===================== LOGIKA SISTEM & NAVIGASI =====================
@@ -164,13 +231,15 @@
         
         STATE.config = res.stats; STATE.overall = res.overall; STATE.headers = res.headers;
         
-        // Tampilkan lencana merah jika ada data kosong
-        document.getElementById('badgeInput').style.display = res.overall.kosong > 0 ? 'block' : 'none';
+        // Notifikasi Lencana Merah
+        const hasEmpty = res.overall.kosong > 0;
+        document.getElementById('badgeInputDesktop').style.display = hasEmpty ? 'block' : 'none';
+        document.getElementById('badgeInputMobile').style.display = hasEmpty ? 'block' : 'none';
         
         switchTab(STATE.tab, true);
       }).catch(err => {
         document.getElementById('loader').classList.add('hidden');
-        document.getElementById('errorBox').innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> KONEKSI GAGAL: ${err.message}`;
+        document.getElementById('errorBox').innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> ${err.message}`;
         document.getElementById('errorBox').classList.remove('hidden');
       });
     }
@@ -179,16 +248,20 @@
       if (STATE.tab === tabName && !force && STATE.view === 'KEC') return;
       STATE.tab = tabName; STATE.view = 'KEC';
 
+      // Update Navigasi Aktif (Mobile & Desktop)
       ['monitoring', 'input', 'petunjuk'].forEach(t => {
-        document.getElementById(`nav-${t}`).classList.remove('active');
+        document.getElementById(`mnav-${t}`).classList.remove('active');
+        document.getElementById(`dnav-${t}`).classList.remove('active');
         document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`).classList.add('hidden');
       });
-      document.getElementById(`nav-${tabName}`).classList.add('active');
+      document.getElementById(`mnav-${tabName}`).classList.add('active');
+      document.getElementById(`dnav-${tabName}`).classList.add('active');
       document.getElementById(`tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`).classList.remove('hidden');
 
       document.getElementById('btnBack').classList.add('hidden');
       document.getElementById('appTitle').innerText = 'SDM PKH TAPIN';
       document.getElementById('appSubtitle').innerText = 'Sistem Data Wilayah';
+      document.getElementById('inputListTitle').innerHTML = ''; // Clear title
 
       if (tabName === 'monitoring') renderMonitoringKec();
       else if (tabName === 'input') renderInputKec();
@@ -199,39 +272,37 @@
       else if (STATE.view === 'DESA') { STATE.tab === 'input' ? renderInputKec() : renderMonitoringKec(); }
     }
 
-    // ===================== KOMPONEN RENDER TAMPILAN =====================
-
     function renderStats(d) {
       return `
-        <div class="flex gap-2 mt-2">
-          <span class="text-[10px] font-black tracking-widest uppercase bg-slate-100 text-slate-600 px-2 py-1 rounded">ALL: ${d.total}</span>
-          <span class="text-[10px] font-black tracking-widest uppercase bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100">KSG: ${d.kosong}</span>
-          <span class="text-[10px] font-black tracking-widest uppercase bg-emerald-50 text-emerald-700 px-2 py-1 rounded border border-emerald-100">OK: ${d.isi}</span>
+        <div class="flex flex-wrap gap-2 mt-2">
+          <span class="text-[9px] md:text-[10px] font-black tracking-widest uppercase bg-slate-100 text-slate-600 px-2 py-1 rounded">ALL: ${d.total}</span>
+          <span class="text-[9px] md:text-[10px] font-black tracking-widest uppercase bg-red-50 text-red-600 px-2 py-1 rounded border border-red-100">KSG: ${d.kosong}</span>
+          <span class="text-[9px] md:text-[10px] font-black tracking-widest uppercase bg-emerald-50 text-emerald-700 px-2 py-1 rounded border border-emerald-100">OK: ${d.isi}</span>
         </div>`;
     }
 
-    // TAB MONITORING
+    // ===================== RENDER MONITORING =====================
+
     function renderMonitoringKec() {
       STATE.view = 'KEC'; document.getElementById('btnBack').classList.add('hidden');
       
-      const sumDiv = document.getElementById('monitoringSummary');
-      sumDiv.innerHTML = `
-        <div class="bg-slate-900 text-white rounded-xl p-6 shadow-lg relative overflow-hidden">
-          <div class="absolute right-0 top-0 w-32 h-32 bg-emerald-600 rounded-full blur-3xl opacity-20"></div>
-          <h2 class="text-[10px] text-emerald-400 font-bold tracking-widest uppercase mb-4">Statistik Total Kabupaten</h2>
+      document.getElementById('monitoringSummary').innerHTML = `
+        <div class="bg-slate-900 text-white rounded-xl p-6 shadow-lg relative overflow-hidden mb-6">
+          <div class="absolute right-0 top-0 w-40 h-40 bg-emerald-600 rounded-full blur-3xl opacity-20"></div>
+          <h2 class="text-xs text-emerald-400 font-bold tracking-widest uppercase mb-6">Statistik Total Kabupaten</h2>
           <div class="flex justify-between items-end">
-            <div><p class="text-xs text-slate-400 font-semibold mb-1">TOTAL DATA</p><p class="font-black text-3xl">${STATE.overall.total}</p></div>
-            <div class="text-right"><p class="text-xs text-red-400 font-semibold mb-1">KOSONG</p><p class="font-black text-xl">${STATE.overall.kosong}</p></div>
-            <div class="text-right"><p class="text-xs text-emerald-400 font-semibold mb-1">SELESAI</p><p class="font-black text-xl">${STATE.overall.isi}</p></div>
+            <div><p class="text-[10px] md:text-xs text-slate-400 font-semibold mb-1">TOTAL DATA</p><p class="font-black text-2xl md:text-3xl">${STATE.overall.total}</p></div>
+            <div class="text-right"><p class="text-[10px] md:text-xs text-red-400 font-semibold mb-1">KOSONG</p><p class="font-black text-xl md:text-2xl">${STATE.overall.kosong}</p></div>
+            <div class="text-right"><p class="text-[10px] md:text-xs text-emerald-400 font-semibold mb-1">SELESAI</p><p class="font-black text-xl md:text-2xl">${STATE.overall.isi}</p></div>
           </div>
         </div>`;
 
       const listDiv = document.getElementById('monitoringList');
-      listDiv.innerHTML = '<h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-6 mb-2 pl-1">Data 12 Kecamatan</h3>';
+      listDiv.innerHTML = '<div class="col-span-full"><h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2">Sebaran 12 Kecamatan</h3></div>';
       
       Object.keys(STATE.config).sort().forEach(kec => {
         listDiv.innerHTML += `
-          <div onclick="renderMonitoringDesa('${kec}')" class="card p-5 flex justify-between items-center cursor-pointer">
+          <div onclick="renderMonitoringDesa('${kec}')" class="card p-5 flex justify-between items-center cursor-pointer hover:border-emerald-500">
             <div><h3 class="font-black text-slate-800 text-sm">KEC. ${kec}</h3>${renderStats(STATE.config[kec])}</div>
             <i class="fa-solid fa-chevron-right text-slate-300"></i>
           </div>`;
@@ -246,26 +317,28 @@
       document.getElementById('monitoringSummary').innerHTML = ''; 
       
       const listDiv = document.getElementById('monitoringList');
-      listDiv.innerHTML = `<h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-2 mb-2 pl-1">Desa di Kecamatan ${kec}</h3>`;
+      listDiv.innerHTML = `<div class="col-span-full"><h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1 mb-2">Desa di Kecamatan ${kec}</h3></div>`;
 
       Object.keys(STATE.config[kec].desas).sort().forEach(desa => {
         listDiv.innerHTML += `
-          <div class="card p-5 border-l-4 border-l-slate-800 cursor-default mb-3">
+          <div class="card p-5 border-l-4 border-l-slate-800 cursor-default">
             <h3 class="font-bold text-slate-800 text-sm">${desa}</h3>${renderStats(STATE.config[kec].desas[desa])}
           </div>`;
       });
     }
 
-    // TAB FORM INPUT
+    // ===================== RENDER FORM INPUT =====================
+
     function renderInputKec() {
       STATE.view = 'KEC'; document.getElementById('btnBack').classList.add('hidden');
+      document.getElementById('inputListTitle').innerHTML = '';
       const listDiv = document.getElementById('inputList'); listDiv.innerHTML = '';
       
       Object.keys(STATE.config).sort().forEach(kec => {
         listDiv.innerHTML += `
-          <div onclick="renderInputDesa('${kec}')" class="card p-5 flex justify-between items-center cursor-pointer hover:border-emerald-500">
+          <div onclick="renderInputDesa('${kec}')" class="card p-5 flex justify-between items-center cursor-pointer hover:border-emerald-500 hover:shadow-md transition">
             <div><h3 class="font-black text-slate-800 text-sm">KEC. ${kec}</h3></div>
-            <div class="bg-slate-100 w-8 h-8 rounded-full flex items-center justify-center text-emerald-600"><i class="fa-solid fa-arrow-right"></i></div>
+            <div class="bg-emerald-50 w-8 h-8 rounded-full flex items-center justify-center text-emerald-600"><i class="fa-solid fa-arrow-right"></i></div>
           </div>`;
       });
     }
@@ -275,14 +348,16 @@
       document.getElementById('btnBack').classList.remove('hidden'); 
       document.getElementById('appTitle').innerText = 'KEC. ' + kec;
       document.getElementById('appSubtitle').innerText = 'Pilih Desa/Kelurahan';
+      
+      document.getElementById('inputListTitle').innerHTML = `<h3 class="text-[11px] font-black text-emerald-700 uppercase tracking-widest pl-1 mb-1 mt-2">Pilih Wilayah ${kec}</h3>`;
       const listDiv = document.getElementById('inputList'); listDiv.innerHTML = '';
       
       Object.keys(STATE.config[kec].desas).sort().forEach(desa => {
         let kosong = STATE.config[kec].desas[desa].kosong;
         listDiv.innerHTML += `
-          <div onclick="loadInputRows('${kec}', '${desa}')" class="card p-5 flex justify-between items-center cursor-pointer border-l-4 border-l-emerald-600 mb-3">
+          <div onclick="loadInputRows('${kec}', '${desa}')" class="card p-5 flex justify-between items-center cursor-pointer border-l-4 border-l-emerald-600 hover:shadow-md transition">
             <div><h3 class="font-bold text-slate-800 text-sm">${desa}</h3><p class="text-[11px] text-red-500 font-bold mt-1">${kosong} Data Kosong</p></div>
-            <button class="bg-emerald-600 text-white px-4 py-2 rounded border border-emerald-700 text-xs font-bold shadow-sm active:scale-95">BUKA</button>
+            <button class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-xs font-bold shadow-sm transition">BUKA</button>
           </div>`;
       });
     }
@@ -292,8 +367,9 @@
       document.getElementById('appTitle').innerText = desa;
       document.getElementById('appSubtitle').innerText = 'Daftar Pengurus';
       
+      document.getElementById('inputListTitle').innerHTML = '';
       const listDiv = document.getElementById('inputList');
-      listDiv.innerHTML = `<div class="flex flex-col items-center py-12 text-emerald-600"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i><p class="text-xs font-bold">Menarik Data ${desa}...</p></div>`;
+      listDiv.innerHTML = `<div class="col-span-full flex flex-col items-center py-12 text-emerald-600"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i><p class="text-xs font-bold uppercase tracking-widest">Menarik Data ${desa}...</p></div>`;
 
       apiFetch('getRows', {kec, desa}).then(res => {
         if(res.status === 'error') throw new Error(res.message);
@@ -302,15 +378,17 @@
         res.data.forEach(item => {
           const isDone = item.status === 'SELESAI';
           listDiv.innerHTML += `
-            <div class="card p-4 flex justify-between items-center mb-3 bg-white ${isDone ? 'opacity-60 border-slate-200' : 'border-l-4 border-l-blue-600'}">
+            <div class="card p-4 md:p-5 flex justify-between items-center bg-white ${isDone ? 'opacity-60 border-slate-200' : 'border-l-4 border-l-blue-600'}">
               <div class="overflow-hidden mr-3 flex-1">
-                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-1">Baris Data: ${item.rowIndex}</p>
-                <h3 class="font-bold text-slate-900 text-sm truncate uppercase">${item.namaPengurus}</h3>
+                <p class="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Baris: ${item.rowIndex}</p>
+                <h3 class="font-bold text-slate-900 text-sm md:text-base truncate uppercase">${item.namaPengurus}</h3>
               </div>
-              <button onclick='openForm(${JSON.stringify(item)})' class="${isDone ? 'bg-slate-200 text-slate-500' : 'btn-primary'} px-4 py-2 rounded text-[11px] uppercase tracking-widest">FORM</button>
+              <button onclick='openForm(${JSON.stringify(item)})' class="${isDone ? 'bg-slate-200 text-slate-500' : 'btn-primary'} px-4 py-2 md:px-5 md:py-2.5 rounded text-[11px] md:text-xs uppercase tracking-widest">FORM</button>
             </div>`;
         });
-      }).catch(err => alert("Gagal mengambil data: " + err.message));
+      }).catch(err => {
+        listDiv.innerHTML = `<div class="col-span-full text-center text-red-600 font-bold">Gagal mengambil data: ${err.message}</div>`;
+      });
     }
 
     // ===================== LOGIKA FORM & UPLOAD DATA =====================
@@ -329,18 +407,17 @@
         let fieldHtml = '';
         if (isPhoto) {
           if (isLocked) {
-            fieldHtml = `<a href="${val}" target="_blank" class="w-full flex items-center justify-center gap-2 p-3 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 text-xs font-bold active:bg-slate-200 transition"><i class="fa-solid fa-image text-emerald-600"></i> Cek Berkas</a>`;
+            fieldHtml = `<a href="${val}" target="_blank" class="w-full flex items-center justify-center gap-2 p-3 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 text-xs font-bold hover:bg-slate-200 transition"><i class="fa-solid fa-image text-emerald-600"></i> Cek Berkas Foto</a>`;
           } else {
-            // Memanggil kamera secara langsung di HP
-            fieldHtml = `<div class="relative w-full"><i class="fa-solid fa-camera absolute left-3.5 top-3.5 text-emerald-600"></i><input type="file" accept="image/*" capture="environment" id="inputCol_${i}" class="w-full text-xs pl-10 pr-3 py-3 border border-emerald-500 rounded-lg bg-white file:hidden font-medium cursor-pointer"></div>`;
+            fieldHtml = `<div class="relative w-full"><i class="fa-solid fa-camera absolute left-3.5 top-3.5 text-emerald-600 text-lg"></i><input type="file" accept="image/*" capture="environment" id="inputCol_${i}" class="w-full text-xs md:text-sm pl-10 pr-3 py-3 border border-emerald-500 rounded-lg bg-white file:hidden font-medium cursor-pointer text-slate-600"></div>`;
           }
         } else {
-          fieldHtml = `<input type="text" id="inputCol_${i}" value="${val}" ${isLocked ? 'readonly' : ''} class="w-full p-3 rounded-lg text-sm font-semibold transition" placeholder="Ketik data...">`;
+          fieldHtml = `<input type="text" id="inputCol_${i}" value="${val}" ${isLocked ? 'readonly' : ''} class="w-full p-3 md:p-3.5 rounded-lg text-sm md:text-base font-semibold transition" placeholder="Ketik data...">`;
         }
 
         form.innerHTML += `
           <div class="flex flex-col gap-1.5">
-            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest flex justify-between">
+            <label class="text-[10px] md:text-[11px] font-black text-slate-500 uppercase tracking-widest flex justify-between">
               ${h} ${isLocked ? '<span class="text-slate-400"><i class="fa-solid fa-lock mr-1"></i>TERKUNCI</span>' : '<span class="text-emerald-600"><i class="fa-solid fa-pen mr-1"></i>KOSONG</span>'}
             </label>
             ${fieldHtml}
@@ -359,42 +436,44 @@
       e.preventDefault();
       const btn = document.getElementById('btnSave');
       const oldHtml = btn.innerHTML;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> MEMPROSES DATA...';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> MEMPROSES...';
       btn.disabled = true;
 
       try {
         const rowIndex = document.getElementById('formRowIndex').value;
         const updates = new Array(STATE.headers.length).fill("");
 
-        // Baca form, konversi file fisik ke kode Base64 untuk dikirim via JSON
         for(let i=0; i<STATE.headers.length; i++) {
           const input = document.getElementById(`inputCol_${i}`);
           if(!input) continue;
 
           if(input.type === 'file' && input.files.length > 0) {
-            btn.innerHTML = '<i class="fa-solid fa-camera fa-fade mr-2"></i> MENGKOMPRESI FOTO...';
-            const file = input.files[0];
-            const base64 = await new Promise((res, rej) => {
-              const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file);
-            });
-            // Siapkan format objek untuk ditangkap oleh Apps Script
-            updates[i] = { type: 'file', filename: file.name, mimeType: file.type, base64: base64.split(',')[1] };
+            btn.innerHTML = '<i class="fa-solid fa-compress fa-beat mr-2"></i> MENGKOMPRESI FOTO...';
+            // PROSES KOMPRESI GAMBAR BERJALAN DI SINI
+            const compressedBase64 = await compressImage(input.files[0]);
+            
+            updates[i] = { 
+              type: 'file', 
+              filename: input.files[0].name, 
+              mimeType: 'image/jpeg', // Telah diubah menjadi JPEG oleh compressor
+              base64: compressedBase64.split(',')[1] 
+            };
           } else {
             updates[i] = input.value;
           }
         }
 
-        btn.innerHTML = '<i class="fa-solid fa-server fa-beat mr-2"></i> SINKRONISASI KE EXCEL...';
+        btn.innerHTML = '<i class="fa-solid fa-server fa-beat mr-2"></i> MENGIRIM KE SERVER...';
         const res = await apiPost('submitData', { rowIndex, updates });
         
         if(res.status === 'error') throw new Error(res.message);
         
-        alert("BERHASIL: " + res.message);
+        alert("✅ BERHASIL: " + res.message);
         closeForm();
-        syncData(); // Perbarui statistik master setelah simpan
+        syncData(); 
 
       } catch (err) {
-        alert("GAGAL MENGIRIM DATA: " + err.message);
+        alert("❌ GAGAL: " + err.message);
       } finally {
         btn.innerHTML = oldHtml;
         btn.disabled = false;
