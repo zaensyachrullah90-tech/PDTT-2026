@@ -489,7 +489,7 @@
           if (skipCb && skipCb.checked) { updates[i] = "-"; } else if (input) {
             if(input.type === 'file') {
                if(input.files.length > 0) {
-                 btn.innerHTML = '<i class="fa-solid fa-compress fa-beat mr-2"></i> MEMOTONG FOTO...';
+                 btn.innerHTML = '<i class="fa-solid fa-compress fa-beat mr-2"></i> Simpan Data...';
                  const compressedBase64 = await compressImage(input.files[0]);
                  updates[i] = { type: 'file', filename: input.files[0].name, mimeType: 'image/jpeg', base64: compressedBase64.split(',')[1] };
                } else { updates[i] = input.getAttribute('data-old') || ""; }
